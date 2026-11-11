@@ -1320,6 +1320,22 @@ footer {
   font-size: 11px;
 }
 
+.instagram-link {
+  display: inline-flex;
+  grid-column: 1 / -1;
+  justify-self: center;
+  color: #d3c5e1;
+}
+
+.instagram-link svg {
+  width: 24px;
+  height: 24px;
+}
+
+.instagram-link:hover {
+  color: #fff;
+}
+
 .footer-brand {
   display: grid;
   gap: 5px;

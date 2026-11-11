@@ -24,6 +24,18 @@ describe('App', () => {
     expect(compiled.querySelector('#map-title')?.textContent).toContain("Where's the party?");
   });
 
+  it('should link to the Queue Berlin Instagram account from the footer', async () => {
+    const fixture = TestBed.createComponent(App);
+    await fixture.whenStable();
+    const link = (fixture.nativeElement as HTMLElement).querySelector('.instagram-link');
+
+    expect(link?.getAttribute('aria-label')).toBe('Queue Berlin on Instagram');
+    expect(link?.querySelector('svg')).not.toBeNull();
+    expect(link?.getAttribute('href')).toBe('https://www.instagram.com/queueberlin/');
+    expect(link?.getAttribute('target')).toBe('_blank');
+    expect(link?.getAttribute('rel')).toContain('noopener');
+  });
+
   it('should keep the party night on the previous date before 6 a.m. in Berlin', () => {
     const partyNight = getPartyNight(new Date('2026-11-10T05:59:00+01:00'));
 
