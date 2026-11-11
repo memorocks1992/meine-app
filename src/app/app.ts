@@ -1083,7 +1083,10 @@ export class App implements OnDestroy {
       return;
     }
 
-    const leaflet = await import('leaflet');
+    const leafletModule = await import('leaflet') as typeof import('leaflet') & {
+      default?: typeof import('leaflet');
+    };
+    const leaflet = leafletModule.default ?? leafletModule;
     if (this.destroyed) {
       return;
     }
