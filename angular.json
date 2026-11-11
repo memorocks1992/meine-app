@@ -31,7 +31,10 @@
             "server": "src/main.server.ts",
             "outputMode": "server",
             "security": {
-              "allowedHosts": []
+              "allowedHosts": [
+                "queue-berlin.com",
+                "www.queue-berlin.com"
+              ]
             },
             "ssr": {
               "entry": "src/server.ts"

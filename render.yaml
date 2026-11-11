@@ -1,7 +1,4 @@
-git add -A
-git commit -m "Prepare Queue Berlin for deployment"
-git remote add origin https://github.com/<queue-berlin>/queue-berlin.git
-git push -u origin mainservices:
+services:
   - type: web
     name: queue-berlin
     runtime: node
