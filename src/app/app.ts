@@ -225,6 +225,7 @@ export class App implements OnDestroy {
   protected readonly forumError = signal<string | null>(null);
   protected readonly forumNotice = signal<string | null>(null);
   protected readonly forumPolicyNotice = signal<string | null>(null);
+  protected readonly forumDisclaimerAccepted = signal(false);
   protected readonly clubMetrics = signal<ClubMetrics | null>(null);
   protected readonly clubReports = signal<PublicReport[]>([]);
   protected readonly recentClubReports = computed(() => this.clubReports().slice(0, 15));
@@ -344,6 +345,10 @@ export class App implements OnDestroy {
     this.reportOpen.update((open) => !open);
     this.reportStatus.set('idle');
     this.reportError.set(null);
+  }
+
+  protected acknowledgeForumDisclaimer(): void {
+    this.forumDisclaimerAccepted.set(true);
   }
 
   protected setWaitMinutes(waitMinutes: number): void {
@@ -1132,6 +1137,7 @@ export class App implements OnDestroy {
 
   private selectClub(club: Club | null): void {
     if (this.selectedClub()?.id !== club?.id) {
+      this.forumDisclaimerAccepted.set(false);
       this.reportOpen.set(false);
       this.historyOpen.set(false);
       this.programOpen.set(false);

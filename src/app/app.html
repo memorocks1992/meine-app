@@ -401,10 +401,13 @@
               </div>
               <span class="club-count">Posts and replies expire after 24 hours</span>
             </div>
-            <p class="section-description">Share tips, ask questions and chat with other visitors to {{ club.name }}. No account needed; choose a name to post.</p>
-            <p class="forum-disclaimer">
-              Posts and replies are public, user-submitted and not pre-verified or endorsed by Queue Berlin. You are responsible for what you publish; do not post private or sensitive information. Report unlawful or harmful content using the “Report” button. Posts and replies are automatically deleted after 24 hours; you can also request earlier removal.
-            </p>
+            <p class="section-description">Share tips, ask questions and chat with other visitors to {{ club.name }}. Please respect our policies and others.</p>
+            @if (!forumDisclaimerAccepted()) {
+              <div class="forum-consent-banner" role="note">
+                <p>Posts and replies are public, user-submitted and not pre-verified or endorsed by Queue Berlin. You are responsible for what you publish; do not post private or sensitive information. Report unlawful or harmful content using the “Report” button. Posts and replies are automatically deleted after 24 hours; you can also request earlier removal.</p>
+                <button type="button" class="secondary-action" (click)="acknowledgeForumDisclaimer()">OK</button>
+              </div>
+            } @else {
 
             <form class="forum-compose" #postForm (submit)="$event.preventDefault(); createForumPost(club.id, postAuthor.value, postBody.value, postForm)">
               <label><span>Your name</span><input #postAuthor maxlength="40" required placeholder="Choose a display name" [disabled]="!backendConfigured || forumBusy()" (input)="checkForumPolicy(postAuthor.value, postBody.value)" /></label>
@@ -489,6 +492,7 @@
                   }
                 </nav>
               }
+            }
             }
           </section>
         </article>

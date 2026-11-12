@@ -1037,11 +1037,27 @@ main {
   font-size: 12px;
 }
 
-.forum-disclaimer {
+.forum-consent-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   margin: 0 0 12px;
+  border: 1px solid #55466a;
+  border-radius: 9px;
+  padding: 11px 12px;
+  background: #211a2b;
+}
+
+.forum-consent-banner p {
+  margin: 0;
   color: #aaa4b4;
   font-size: 11px;
   line-height: 1.5;
+}
+
+.forum-consent-banner .secondary-action {
+  flex: 0 0 auto;
 }
 
 .forum-compose {
