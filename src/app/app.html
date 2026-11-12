@@ -310,7 +310,10 @@
                 @else if (clubEvents().length === 0) { No upcoming events listed. }
                 @else {
                   @for (event of clubEvents(); track event.id) {
-                    <p class="event-item"><strong>{{ formatEventDate(event.event_date) }}</strong> · {{ event.description }}</p>
+                    <p class="event-item">
+                      <strong>{{ formatEventDate(event.event_date) }}</strong> · {{ event.description }}
+                      @if (event.djs) { <span class="event-djs"> · DJs: {{ event.djs }}</span> }
+                    </p>
                   }
                 }
               </div>
