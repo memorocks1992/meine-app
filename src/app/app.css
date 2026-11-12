@@ -60,57 +60,17 @@ app-root {
   color: var(--purple);
 }
 
-.topbar-actions,
-.preview-badge,
 .club-count {
   display: inline-flex;
   align-items: center;
 }
 
-.topbar-actions {
-  gap: 10px;
-}
-
-.admin-toggle {
-  min-height: 34px;
-  border: 1px solid #3c3448;
-  border-radius: 999px;
-  padding: 0 12px;
-  background: #1b1722;
-  color: #e6d9f5;
-  cursor: pointer;
-  font: inherit;
-  font-size: 12px;
-}
-
-.admin-toggle:hover {
-  border-color: var(--purple);
-}
-
-.forum-nav {
-  color: #d7d1df;
-  font-size: 12px;
-  text-decoration: none;
-}
-
-.forum-nav:hover {
-  color: var(--purple);
-}
-
-.preview-badge,
 .club-count {
   gap: 8px;
   color: #c9c3d0;
   font-size: 12px;
 }
 
-.preview-badge {
-  border: 1px solid #3c3448;
-  border-radius: 999px;
-  padding: 7px 11px;
-}
-
-.preview-badge > span,
 .map-dot {
   width: 7px;
   height: 7px;
@@ -1544,30 +1504,6 @@ footer {
     padding: 0 18px;
   }
 
-  .topbar-actions {
-    gap: 6px;
-  }
-
-  .admin-toggle {
-    min-height: 31px;
-    padding: 0 9px;
-    font-size: 10px;
-  }
-
-  .forum-nav {
-    font-size: 11px;
-  }
-
-  .preview-badge {
-    display: none;
-  }
-
-  .preview-badge {
-    gap: 5px;
-    padding: 6px 8px;
-    font-size: 10px;
-  }
-
   .admin-panel {
     padding: 16px;
   }
@@ -1745,18 +1681,6 @@ footer {
 }
 
 .brand-name strong {
-  color: var(--purple);
-}
-
-.admin-toggle,
-.preview-badge {
-  border: 0;
-  border-radius: 2px;
-  background: transparent;
-}
-
-.admin-toggle:hover,
-.preview-badge {
   color: var(--purple);
 }
 

@@ -24,6 +24,18 @@ describe('App', () => {
     expect(compiled.querySelector('#map-title')?.textContent).toContain("Where's the party?");
   });
 
+  it('should leave the header right side empty', async () => {
+    const fixture = TestBed.createComponent(App);
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+
+    expect(compiled.querySelector('.topbar-actions')).toBeNull();
+    expect(compiled.querySelector('.topbar-tagline')).toBeNull();
+    expect(compiled.querySelector('.forum-nav')).toBeNull();
+    expect(compiled.querySelector('.admin-toggle')).toBeNull();
+    expect(compiled.querySelector('.preview-badge')).toBeNull();
+  });
+
   it('should show a dismissible community information banner', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();

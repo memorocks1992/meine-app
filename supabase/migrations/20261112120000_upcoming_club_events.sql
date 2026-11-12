@@ -1,27 +1,28 @@
--- Verified upcoming events for the 31-day public event window as of 2026-11-12.
--- Sources: official calendars at berghain.berlin, tresorberlin.com,
--- club.ritterbutzke.com, and renate.cc. Clubs without verifiable listings are
--- intentionally not seeded; this does not assert that they have no events.
+-- Event snapshot for the 31-day public event window as of 2026-11-12.
+-- Sources: official calendars at berghain.berlin/de/program/,
+-- tresorberlin.com/club/events/, club.ritterbutzke.com/events, and renate.cc.
+-- Resident Advisor blocks direct access here; listings for the other clubs
+-- could not be retrieved. No dates or lineups are inferred for those clubs.
 -- The schema allows one row per club and date, so same-day events are combined.
--- djs is null when no DJ lineup applies or the combined lineup cannot fit in varchar(160).
+-- DJ lineups are selective where the published full lineup exceeds varchar(160).
 
 insert into public.events as current_event (club_slug, event_date, description, djs)
 values
   ('berghain', '2026-11-13', '9000 Dreams @Panorama Bar', 'Avalon Emerson, Jex Opolis, regularfantasy, Salute, TSVI'),
-  ('berghain', '2026-11-14', 'FC SNAX UNiTED / Klubnacht', null),
+  ('berghain', '2026-11-14', 'FC SNAX UNiTED / Klubnacht', 'Beste Hira, Efdemin, Lolsnake; Ian Pooley Live, Alinka, Bryan Kessler, Cinthie'),
   ('berghain', '2026-11-18', 'West-Eastern Divan Festival: Musik von Mark Simpson & Pierre Boulez', null),
   ('berghain', '2026-11-19', 'Heelix @Säule', 'Abo Abo & Marco Maldarella Live, Innersha Live, Midori, Seta Loto, vp allowed'),
   ('berghain', '2026-11-20', 'REEF', 'Darwin, DJ Storm, Esposito, Mala, Carl Luis, Ila Brugal, Mad Professor, ophélie, Sun People'),
-  ('berghain', '2026-11-21', 'Klubnacht', null),
+  ('berghain', '2026-11-21', 'Klubnacht', 'Tunegirl Live, JakoJako, Kasper Marott, Paula Koski, Reka Zalan, Ron Albrecht, Stefan Goldmann, Takaaki Itoh; Dj Split, Nathalie Seres'),
   ('berghain', '2026-11-26', 'The Sound Of @Säule', 'Vera Grace Live, Carlotta Jacobi, Connor Wall, Obscur'),
   ('berghain', '2026-11-27', 'Love On The Rocks @Panorama Bar', 'Danilo Plessow aka MCDE, Giammarco Orsini, Pancratio, PARAMIDA, Simone De Kunovich, Stella Zekri'),
-  ('berghain', '2026-11-28', 'Klubnacht', null),
+  ('berghain', '2026-11-28', 'Klubnacht', 'Aöcram, Denise Rabe, Fabian Garrido, Ignez, Kwartz, Mari Sakurai, Sandrien; Abajour, Budino, Katy De Jesus, Ketiov, Massimiliano Pagliara'),
   ('berghain', '2026-12-03', 'Hyper Real @Säule', 'Iarna Live, Kutmah, MA SHA, Opium Hum, Zut Zut'),
   ('berghain', '2026-12-04', 'Your Love @Panorama Bar', 'Kalypso Bang Live, Lakuti, NM DJ, Tama Sumo, Yvonne Turner'),
   ('berghain', '2026-12-05', 'Klubnacht', 'DJ Maria., DJ Rush, Fadi Mohem, Kr!z, Kyle Geiger, Ogazón, Red Rooms, BASHKKA, Brennan, Derrick Carter, Ferg, Fiedel, Rosie Ama, Tal Fussman'),
   ('berghain', '2026-12-10', 'weeeirdos @Säule', 'DJ Skin, Fumi, James Newmarch, Lolsnake, Voicedrone'),
   ('berghain', '2026-12-11', 'Time Passages @Panorama Bar', 'Binh, Craig Richards, Leo Leal, Sandrien, Skatman'),
-  ('berghain', '2026-12-12', 'Geburtstags Klubnacht', null),
+  ('berghain', '2026-12-12', 'Geburtstags Klubnacht', 'Blawan Live, Akua, Andy Martin, Cecilia Tosh, Christian AB, Decoder, Emily Jeanne, Joel Mull, Stranger, Zvrra'),
 
   ('tresor', '2026-11-13', 'Tresor meets DJ Bone: FURTHER', 'LYZA, madwoman, Mark Williams, DAIYAH, Yeti Mind Tricks, DJ Bone'),
   ('tresor', '2026-11-14', 'Tresor Klubnacht', 'UVB, Cecilia Tosh, James Ruskin, NEUX, Nat Wendell, Hamish & Toby, JAXX TMS'),

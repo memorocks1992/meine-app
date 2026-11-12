@@ -4,16 +4,6 @@
       <span class="brand-mark" aria-hidden="true">Q</span>
       <span class="brand-name">QUEUE <strong>BERLIN</strong></span>
     </a>
-    <div class="topbar-actions">
-      <a class="forum-nav" href="#map-title">Choose a club</a>
-      <button
-        type="button"
-        class="admin-toggle"
-        (click)="adminOpen.update(open => !open)"
-        [attr.aria-expanded]="adminOpen()"
-      >{{ adminUser() ? 'Admin' : 'Admin sign in' }}</button>
-      <span class="preview-badge"><span aria-hidden="true"></span> Preview</span>
-    </div>
   </header>
 
   @if (adminOpen()) {
