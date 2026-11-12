@@ -24,6 +24,20 @@ describe('App', () => {
     expect(compiled.querySelector('#map-title')?.textContent).toContain("Where's the party?");
   });
 
+  it('should show a dismissible community information banner', async () => {
+    const fixture = TestBed.createComponent(App);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('.community-notice')?.textContent).toContain('No reports, no live information.');
+
+    compiled.querySelector<HTMLButtonElement>('.community-notice-dismiss')?.click();
+    fixture.detectChanges();
+
+    expect(compiled.querySelector('.community-notice')).toBeNull();
+  });
+
   it('should link to the Queue Berlin Instagram account from the footer', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();

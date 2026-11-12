@@ -226,6 +226,7 @@ export class App implements OnDestroy {
   });
   protected readonly reportOpen = signal(false);
   protected readonly reportEventNotice = signal<string | null>(null);
+  protected readonly communityNoticeOpen = signal(true);
   protected readonly historyOpen = signal(false);
   protected readonly programOpen = signal(false);
   protected readonly reportStatus = signal<'idle' | 'submitting' | 'success' | 'error'>('idle');
@@ -371,6 +372,10 @@ export class App implements OnDestroy {
 
   protected acknowledgeForumDisclaimer(): void {
     this.forumDisclaimerAccepted.set(true);
+  }
+
+  protected acknowledgeCommunityNotice(): void {
+    this.communityNoticeOpen.set(false);
   }
 
   protected setWaitMinutes(waitMinutes: number): void {

@@ -168,6 +168,14 @@
   </section>
 
   <main>
+    @if (communityNoticeOpen()) {
+      <aside class="community-notice" role="note" aria-label="Community information">
+        <span class="community-notice-icon" aria-hidden="true">i</span>
+        <p><strong>Powered by the community.</strong> No reports, no live information. Share what you see to help everyone plan their night.</p>
+        <button type="button" class="community-notice-dismiss" (click)="acknowledgeCommunityNotice()">OK</button>
+      </aside>
+    }
+
     <section class="map-section" aria-labelledby="map-title">
       <div class="section-heading">
         <div>
