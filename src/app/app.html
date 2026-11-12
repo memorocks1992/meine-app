@@ -232,9 +232,9 @@
           </div>
 
           <div class="club-metrics">
-            <section class="metric-card" aria-label="Chance of getting in">
+            <section class="metric-card" aria-label="Door Odds">
               <div class="metric-title">
-                <h3>Chance of getting in</h3>
+                <h3>Door Odds</h3>
                 <strong>{{ clubMetrics()?.entryChance ?? '–' }}<small> / 10</small></strong>
               </div>
               <div class="meter" aria-hidden="true">
@@ -354,8 +354,8 @@
               </fieldset>
 
               <fieldset class="report-field">
-                <legend>Chance of getting in <span>{{ reportDraft().entryChance ?? '–' }} / 10</span></legend>
-                <input type="range" min="1" max="10" step="1" [value]="reportDraft().entryChance ?? 5" (input)="setEntryChance($event)" aria-label="Chance of getting in from 1 to 10" />
+                <legend>Door Odds <span>{{ reportDraft().entryChance ?? '–' }} / 10</span></legend>
+                <input type="range" min="1" max="10" step="1" [value]="reportDraft().entryChance ?? 5" (input)="setEntryChance($event)" aria-label="Door Odds from 1 to 10" />
                 <div class="range-labels"><span>Very unlikely</span><span>Very likely</span></div>
               </fieldset>
 
