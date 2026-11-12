@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { App, calculateClubMetrics, getForumPolicyNotice, getPartyNight } from './app';
+import { App, calculateClubMetrics, getForumPolicyNotice, getPartyNight, getReportEventNotice } from './app';
 import type { PublicReport } from './supabase.service';
 
 describe('App', () => {
@@ -61,6 +61,18 @@ describe('App', () => {
 
     expect(beforeCutoff.date).toBe('Thursday, 16 July 2026');
     expect(atCutoff.date).toBe('Friday, 17 July 2026');
+  });
+
+  it('should prevent reports when no event is registered for the club', () => {
+    expect(getReportEventNotice('ready', false, 'Berghain')).toBe(
+      'There is currently no event registered for Berghain. Reports can only be submitted while an event is running.',
+    );
+    expect(getReportEventNotice('ready', true, 'Berghain')).toBeNull();
+  });
+
+  it('should not allow reports until event availability is known', () => {
+    expect(getReportEventNotice('loading', false, 'Berghain')).toContain('still being checked');
+    expect(getReportEventNotice('error', false, 'Berghain')).toContain('could not be verified');
   });
 
   it('should flag prohibited forum language in posts, replies, and display names', () => {

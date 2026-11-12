@@ -383,6 +383,9 @@
               <button type="button" class="submit-report" [disabled]="!reportReady() || !backendConfigured || reportStatus() === 'submitting'" (click)="submitReport()">
                 @if (reportStatus() === 'submitting') { Sending… } @else { Submit report }
               </button>
+              @if (reportEventNotice(); as notice) {
+                <p class="form-error" role="alert">{{ notice }}</p>
+              }
               @if (!reportReady()) {
                 <p class="form-hint">Select at least one detail.</p>
               }

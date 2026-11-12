@@ -28,6 +28,25 @@ interface ReportDraft {
   mood: number | null;
 }
 
+type ClubDataStatus = 'idle' | 'loading' | 'ready' | 'error' | 'unconfigured';
+
+export function getReportEventNotice(
+  status: ClubDataStatus,
+  hasEvent: boolean,
+  clubName: string,
+): string | null {
+  if (status === 'ready' && !hasEvent) {
+    return `There is currently no event registered for ${clubName}. Reports can only be submitted while an event is running.`;
+  }
+  if (status === 'loading' || status === 'idle') {
+    return 'Event availability is still being checked. Please try again in a moment.';
+  }
+  if (status === 'error' || status === 'unconfigured') {
+    return 'Event availability could not be verified. Please try again later.';
+  }
+  return null;
+}
+
 export interface ClubMetrics {
   waitMinutes: number | null;
   entryChance: number | null;
@@ -206,6 +225,7 @@ export class App implements OnDestroy {
       || draft.mood !== null;
   });
   protected readonly reportOpen = signal(false);
+  protected readonly reportEventNotice = signal<string | null>(null);
   protected readonly historyOpen = signal(false);
   protected readonly programOpen = signal(false);
   protected readonly reportStatus = signal<'idle' | 'submitting' | 'success' | 'error'>('idle');
@@ -230,10 +250,11 @@ export class App implements OnDestroy {
   protected readonly clubReports = signal<PublicReport[]>([]);
   protected readonly recentClubReports = computed(() => this.clubReports().slice(0, 15));
   protected readonly clubEvents = signal<ClubEvent[]>([]);
-  protected readonly tonightEvent = computed(() =>
-    this.clubEvents().find((event) => event.event_date === getPartyNightKey(new Date())) ?? null,
-  );
-  protected readonly clubDataStatus = signal<'idle' | 'loading' | 'ready' | 'error' | 'unconfigured'>('idle');
+  protected readonly tonightEvent = computed(() => {
+    this.partyNight();
+    return this.clubEvents().find((event) => event.event_date === getPartyNightKey(new Date())) ?? null;
+  });
+  protected readonly clubDataStatus = signal<ClubDataStatus>('idle');
   protected readonly adminOpen = signal(false);
   protected readonly adminUser = signal<User | null>(null);
   protected readonly adminBusy = signal(false);
@@ -345,6 +366,7 @@ export class App implements OnDestroy {
     this.reportOpen.update((open) => !open);
     this.reportStatus.set('idle');
     this.reportError.set(null);
+    this.reportEventNotice.set(null);
   }
 
   protected acknowledgeForumDisclaimer(): void {
@@ -378,6 +400,16 @@ export class App implements OnDestroy {
     if (!club || !this.reportReady() || this.reportStatus() === 'submitting') {
       return;
     }
+    const eventNotice = getReportEventNotice(
+      this.clubDataStatus(),
+      this.tonightEvent() !== null,
+      club.name,
+    );
+    if (eventNotice) {
+      this.reportEventNotice.set(eventNotice);
+      return;
+    }
+    this.reportEventNotice.set(null);
     this.reportStatus.set('submitting');
     this.reportError.set(null);
 
@@ -1143,6 +1175,7 @@ export class App implements OnDestroy {
       this.programOpen.set(false);
       this.reportStatus.set('idle');
       this.reportError.set(null);
+      this.reportEventNotice.set(null);
       this.reportDraft.set({
         waitMinutes: null,
         entryRange: null,
