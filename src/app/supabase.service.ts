@@ -27,6 +27,7 @@ export interface ClubEvent {
   club_slug: string;
   event_date: string;
   description: string;
+  djs: string | null;
 }
 
 export interface ManagedClub {
@@ -113,7 +114,7 @@ export class SupabaseService {
     const client = await this.requireClient();
     const { data, error } = await client
       .from('events')
-      .select('id, club_slug, event_date, description')
+      .select('id, club_slug, event_date, description, djs')
       .eq('club_slug', clubSlug)
       .order('event_date', { ascending: true })
       .limit(32);
@@ -172,7 +173,7 @@ export class SupabaseService {
     const client = await this.requireClient();
     const { data, error } = await client
       .from('events')
-      .select('id, club_slug, event_date, description')
+      .select('id, club_slug, event_date, description, djs')
       .order('event_date', { ascending: true })
       .limit(100);
     if (error) {
@@ -197,7 +198,7 @@ export class SupabaseService {
     }
   }
 
-  async saveEvent(event: Pick<ClubEvent, 'club_slug' | 'event_date' | 'description'>): Promise<void> {
+  async saveEvent(event: Pick<ClubEvent, 'club_slug' | 'event_date' | 'description' | 'djs'>): Promise<void> {
     const client = await this.requireClient();
     const { error } = await client.from('events').upsert(event, { onConflict: 'club_slug,event_date' });
     if (error) {

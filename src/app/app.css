@@ -261,7 +261,7 @@ app-root {
 }
 
 .admin-event-form {
-  grid-template-columns: minmax(130px, 1fr) minmax(130px, 0.8fr) minmax(180px, 1.5fr) auto;
+  grid-template-columns: minmax(130px, 1fr) minmax(130px, 0.8fr) minmax(180px, 1.5fr) minmax(130px, 1fr) auto;
 }
 
 .admin-update-form {
@@ -665,6 +665,11 @@ main {
 .event-value > strong {
   font-size: 14px;
   font-weight: 600;
+}
+
+.event-djs {
+  color: #c8c1d0;
+  font-size: 12px;
 }
 
 .metric-note,
@@ -1505,6 +1510,7 @@ footer {
   }
 
   .admin-event-description,
+  .admin-event-djs,
   .admin-update-message {
     grid-column: 1 / -1;
   }

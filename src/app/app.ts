@@ -710,7 +710,7 @@ export class App implements OnDestroy {
     }
   }
 
-  protected async saveEvent(clubSlug: string, eventDate: string, description: string): Promise<void> {
+  protected async saveEvent(clubSlug: string, eventDate: string, description: string, djs: string): Promise<void> {
     this.adminNotice.set(null);
     if (!clubSlug || !description.trim()
       || eventDate < berlinCalendarDate(new Date())
@@ -726,6 +726,7 @@ export class App implements OnDestroy {
         club_slug: clubSlug,
         event_date: eventDate,
         description: description.trim(),
+        djs: djs.trim() || null,
       });
       this.adminNotice.set('Event saved.');
       await this.loadAdminDashboard();

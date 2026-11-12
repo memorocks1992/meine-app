@@ -68,16 +68,17 @@
         } @else if (adminTab() === 'events') {
           <section class="admin-workspace" aria-label="Manage events">
             <div class="admin-workspace-heading"><div><p class="eyebrow">UPCOMING PROGRAMME</p><h3>Add or update an event</h3></div></div>
-            <form class="admin-form admin-event-form" (submit)="$event.preventDefault(); saveEvent(eventClub.value, eventDate.value, eventDescription.value)">
+            <form class="admin-form admin-event-form" (submit)="$event.preventDefault(); saveEvent(eventClub.value, eventDate.value, eventDescription.value, eventDjs.value)">
               <label><span>Club</span><select #eventClub required><option value="">Choose a club</option>@for (club of activeAdminClubs(); track club.slug) { <option [value]="club.slug">{{ club.name }}</option> }</select></label>
               <label><span>Date</span><input #eventDate type="date" [min]="eventDateMinimum()" [max]="eventDateMaximum()" required /></label>
               <label class="admin-event-description"><span>Event details</span><input #eventDescription maxlength="160" required placeholder="Event or lineup" /></label>
+              <label class="admin-event-djs"><span>DJs</span><input #eventDjs maxlength="160" placeholder="DJ names" /></label>
               <button type="submit" class="admin-submit" [disabled]="adminBusy()">{{ adminBusy() ? 'Saving…' : 'Save event' }}</button>
             </form>
             <div class="admin-list">
               @for (event of adminEvents(); track event.id) {
                 <article class="admin-list-item">
-                  <div class="admin-list-copy"><strong>{{ event.description }}</strong><span>{{ adminClubName(event.club_slug) }} · {{ formatEventDate(event.event_date) }}</span></div>
+                  <div class="admin-list-copy"><strong>{{ event.description }}</strong><span>{{ adminClubName(event.club_slug) }} · {{ formatEventDate(event.event_date) }}@if (event.djs) { · DJs: {{ event.djs }} }</span></div>
                   <button type="button" class="secondary-action" [disabled]="adminBusy()" (click)="deleteEvent(event)">Delete</button>
                 </article>
               } @empty { <p class="admin-empty">No events scheduled.</p> }
@@ -223,6 +224,9 @@
             <div class="event-value">
               <span class="eyebrow">🎫 TONIGHT</span>
               <strong>{{ tonightEvent()?.description ?? 'No event listed yet' }}</strong>
+              @if (tonightEvent()?.djs; as djs) {
+                <span class="event-djs">DJs: {{ djs }}</span>
+              }
               <span class="metric-note">Event details from the team</span>
             </div>
           </div>
