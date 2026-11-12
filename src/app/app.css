@@ -1055,7 +1055,9 @@ main {
 }
 
 .forum-consent-banner .secondary-action {
-  justify-self: start;
+  justify-self: center;
+  min-height: 32px;
+  padding: 0 12px;
 }
 
 .forum-compose {
