@@ -5,6 +5,7 @@ A responsive web prototype for Berlin's club scene. The map shows the initial cl
 ## Supabase setup
 
 1. Create a Supabase project and apply the SQL files in [`supabase/migrations`](./supabase/migrations) in filename order using its SQL Editor. The latest migration adds a primary key to `live_updates`, so existing rows can be edited and deleted in the Table Editor.
+   The event seed migration is a snapshot of verified club-calendar listings as of 2026-11-12; review and refresh those dates before reusing it later.
 2. Copy the project URL and publishable (anon) key from **Project Settings → API** into `supabaseUrl` and `supabaseAnonKey` in [`src/environments/environment.ts`](./src/environments/environment.ts). These are browser-visible project settings; never put a `service_role` key in the app.
 3. Create the admin account from the Supabase Dashboard (Authentication → Users → Add user), then grant it the admin role in the SQL Editor:
 
