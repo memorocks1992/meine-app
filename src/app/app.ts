@@ -32,6 +32,22 @@ type ClubDataStatus = 'idle' | 'loading' | 'ready' | 'error' | 'unconfigured';
 
 const MAX_UPCOMING_EVENT_DAYS = 100;
 
+const CLUB_WEBSITE_URLS: Readonly<Record<string, string>> = {
+  berghain: 'https://www.berghain.berlin/',
+  sisyphos: 'https://sisyphos-berlin.net/',
+  tresor: 'https://tresorberlin.com/',
+  kitkatclub: 'https://kitkatclub.org/',
+  'about-blank': 'https://aboutblank.li/',
+  'wilde-renate': 'https://www.renate.cc/',
+  'club-der-visionaere': 'https://clubdervisionaere.com/',
+  'ritter-butzke': 'https://club.ritterbutzke.com/',
+  schwuz: 'https://www.schwuz.de/',
+  'rso-berlin': 'https://rso.berlin/',
+  heidegluehen: 'https://heidegluehen.berlin/',
+  'club-ost': 'https://clubost.de/',
+  kater: 'https://www.katerclub.de/',
+};
+
 export function getReportEventNotice(
   status: ClubDataStatus,
   hasEvent: boolean,
@@ -357,6 +373,10 @@ export class App implements OnDestroy {
 
   protected clearSelection(): void {
     this.selectClub(null);
+  }
+
+  protected clubWebsiteUrl(clubId: string): string | null {
+    return CLUB_WEBSITE_URLS[clubId] ?? null;
   }
 
   protected toggleReport(): void {

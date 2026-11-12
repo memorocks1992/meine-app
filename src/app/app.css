@@ -563,15 +563,6 @@ main {
   letter-spacing: -0.02em;
 }
 
-.club-color {
-  width: 11px;
-  height: 11px;
-  flex: 0 0 auto;
-  border: 3px solid rgb(255 255 255 / 13%);
-  border-radius: 50%;
-  box-sizing: content-box;
-}
-
 .club-heading .eyebrow {
   margin-bottom: 4px;
 }
@@ -610,7 +601,7 @@ main {
 .wait-value {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 8px;
 }
 
 .wait-value > strong {
@@ -646,7 +637,7 @@ main {
 .event-value {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 8px;
 }
 
@@ -736,12 +727,19 @@ main {
   grid-column: 1 / -1;
 }
 
+.club-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 13px;
+}
+
 .maps-link {
   display: inline-flex;
   min-height: 42px;
   align-items: center;
   gap: 8px;
-  margin-top: 13px;
   border: 1px solid #473a57;
   border-radius: 10px;
   padding: 0 13px;
@@ -2009,14 +2007,6 @@ main {
   font-size: inherit;
 }
 
-.club-color {
-  width: 9px;
-  height: 9px;
-  border: 0;
-  border-radius: 50%;
-  box-shadow: 0 0 0 4px rgb(255 255 255 / 7%);
-}
-
 .close-button {
   border: 0;
   border-radius: 50%;
@@ -2037,6 +2027,11 @@ main {
 .wait-value > strong {
   font-size: 34px;
   letter-spacing: -0.04em;
+  margin-top: -14px;
+}
+
+.wait-value > .metric-note {
+  margin-top: -4px;
 }
 
 .club-metrics {
@@ -2274,6 +2269,51 @@ footer {
   content: "";
 }
 
+.report-toggle {
+  display: block;
+  width: min(100%, 360px);
+  margin: 16px auto 0;
+  border: 1px solid rgb(188 135 255 / 55%);
+  border-radius: 14px;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgb(133 79 190 / 32%), transparent 34rem),
+    linear-gradient(145deg, #21192c, #17131d 72%);
+  box-shadow:
+    0 12px 35px rgb(0 0 0 / 22%),
+    inset 0 1px rgb(255 255 255 / 7%);
+  color: #f3e8ff;
+}
+
+.report-toggle:hover {
+  border-color: rgb(188 135 255 / 80%);
+  background:
+    radial-gradient(ellipse at 50% 0%, rgb(133 79 190 / 42%), transparent 34rem),
+    linear-gradient(145deg, #261c33, #19141f 72%);
+}
+
+.submit-report:not(.forum-publish) {
+  display: block;
+  width: min(100%, 360px);
+  min-height: 46px;
+  margin: 4px auto 0;
+  border: 1px solid rgb(188 135 255 / 65%);
+  border-radius: 14px;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgb(133 79 190 / 42%), transparent 34rem),
+    linear-gradient(145deg, #292037, #1b1522 72%);
+  box-shadow:
+    0 12px 35px rgb(0 0 0 / 22%),
+    inset 0 1px rgb(255 255 255 / 7%);
+  color: #f3e8ff;
+}
+
+.submit-report:not(.forum-publish):not(:disabled):hover {
+  border-color: rgb(188 135 255 / 90%);
+  background:
+    radial-gradient(ellipse at 50% 0%, rgb(133 79 190 / 52%), transparent 34rem),
+    linear-gradient(145deg, #302342, #1e1727 72%);
+}
+
 .forum-section .section-heading,
 .forum-section > .section-description,
 .forum-section > form,
@@ -2290,10 +2330,21 @@ footer {
 }
 
 .forum-section .forum-consent-banner {
+  width: min(100%, 620px);
+  margin: 24px auto 20px;
   border: 1px solid rgb(188 135 255 / 22%);
   border-left: 2px solid var(--purple);
   border-radius: 11px;
+  padding: clamp(18px, 3vw, 24px);
   background: rgb(39 31 51 / 72%);
+}
+
+.forum-section .forum-consent-banner p {
+  color: #c5bdcf;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 13px;
+  line-height: 1.65;
+  letter-spacing: 0.01em;
 }
 
 .forum-section .forum-compose {

@@ -209,7 +209,6 @@
       @if (selectedClub(); as club) {
         <article class="selected-club">
           <div class="club-heading">
-            <span class="club-color" [style.background]="club.color" aria-hidden="true"></span>
             <div>
               <p class="eyebrow">{{ club.district }}</p>
               <h2>{{ club.name }}</h2>
@@ -247,7 +246,7 @@
             </section>
             <section class="metric-card" aria-label="Vibe and DJs">
               <div class="metric-title">
-                <h3><span class="heading-symbol" aria-hidden="true">♫</span>Vibe &amp; DJs</h3>
+                <h3><span class="heading-symbol" aria-hidden="true">♫</span>Club vibe</h3>
                 <strong>{{ clubMetrics()?.mood ?? '–' }}<small> / 10</small></strong>
               </div>
               <div class="meter" aria-hidden="true">
@@ -266,14 +265,21 @@
             </section>
           </div>
 
-          <a
-            class="maps-link"
-            [href]="'https://maps.apple.com/?daddr=' + club.latitude + ',' + club.longitude + '&dirflg=w'"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <span aria-hidden="true">↗</span> Open in Maps
-          </a>
+          <div class="club-links">
+            <a
+              class="maps-link"
+              [href]="'https://maps.apple.com/?daddr=' + club.latitude + ',' + club.longitude + '&dirflg=w'"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <span aria-hidden="true">↗</span> Open in Maps
+            </a>
+            @if (clubWebsiteUrl(club.id); as websiteUrl) {
+              <a class="maps-link" [href]="websiteUrl" target="_blank" rel="noopener noreferrer">
+                <span aria-hidden="true">↗</span> Club Website
+              </a>
+            }
+          </div>
 
           <div class="detail-actions">
             <button type="button" class="secondary-action" (click)="historyOpen.update(open => !open)" [attr.aria-expanded]="historyOpen()">
@@ -364,7 +370,7 @@
               </fieldset>
 
               <fieldset class="report-field">
-                <legend>Vibe &amp; DJs <span>{{ reportDraft().mood ?? '–' }} / 10</span></legend>
+                <legend>Club vibe <span>{{ reportDraft().mood ?? '–' }} / 10</span></legend>
                 <input type="range" min="1" max="10" step="1" [value]="reportDraft().mood ?? 5" (input)="setMood($event)" aria-label="Vibe and DJs from 1 to 10" />
                 <div class="range-labels"><span>Low-key</span><span>Awesome</span></div>
               </fieldset>
@@ -412,7 +418,7 @@
             @if (!forumDisclaimerAccepted()) {
               <div class="forum-consent-banner" role="note">
                 <p>Posts and replies are public, user-submitted and not pre-verified or endorsed by Queue Berlin. You are responsible for what you publish; do not post private or sensitive information. Report unlawful or harmful content using the “Report” button. Posts and replies are automatically deleted after 24 hours; you can also request earlier removal.</p>
-                <button type="button" class="secondary-action" (click)="acknowledgeForumDisclaimer()">OK</button>
+                <button type="button" class="secondary-action" aria-label="OK, bestätigen" (click)="acknowledgeForumDisclaimer()">👌</button>
               </div>
             } @else {
 
