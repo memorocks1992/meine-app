@@ -43,7 +43,7 @@ describe('App', () => {
     const motto = compiled.querySelector<HTMLElement>('.motto');
     const tonightLabel = compiled.querySelector<HTMLElement>('.night-bar .eyebrow');
 
-    expect(motto?.textContent).toContain('In Berlin steht man an');
+    expect(motto?.textContent).toContain('In Berlin, da steht man an.');
     expect(motto?.parentElement?.classList.contains('brand-copy')).toBe(true);
     expect(motto?.previousElementSibling?.classList.contains('brand-name')).toBe(true);
     expect(getComputedStyle(motto!).fontSize).toBe(getComputedStyle(tonightLabel!).fontSize);
