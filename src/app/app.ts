@@ -30,6 +30,8 @@ interface ReportDraft {
 
 type ClubDataStatus = 'idle' | 'loading' | 'ready' | 'error' | 'unconfigured';
 
+const MAX_UPCOMING_EVENT_DAYS = 100;
+
 export function getReportEventNotice(
   status: ClubDataStatus,
   hasEvent: boolean,
@@ -261,6 +263,7 @@ export class App implements OnDestroy {
     { id: 'rso-berlin', name: 'RSO.Berlin', district: 'Niederschöneweide', address: 'Schnellerstraße 137', latitude: 52.4558, longitude: 13.5105, color: '#818cf8' },
     { id: 'heidegluehen', name: 'Heideglühen', district: 'Moabit', address: 'Seestraße 1', latitude: 52.5413, longitude: 13.3405, color: '#f87171' },
     { id: 'club-ost', name: 'Club OST', district: 'Stralau', address: 'Alt-Stralau 1–2', latitude: 52.5001, longitude: 13.4718, color: '#e879f9' },
+    { id: 'kater', name: 'Kater Blau', district: 'Friedrichshain', address: 'Holzmarktstraße 25', latitude: 52.5125, longitude: 13.4297, color: '#a78bfa' },
   ]);
 
   private readonly platformId = inject(PLATFORM_ID);
@@ -277,6 +280,7 @@ export class App implements OnDestroy {
     ['ritter-butzke', [-180, 35]],
     ['schwuz', [0, 70]],
     ['club-ost', [175, -75]],
+    ['kater', [-110, -55]],
   ]);
   private readonly compactLabelOffsets = new Map<string, readonly [number, number]>([
     ['berghain', [2, -66]],
@@ -290,6 +294,7 @@ export class App implements OnDestroy {
     ['schwuz', [-24, 63]],
     ['rso-berlin', [-68, 6]],
     ['club-ost', [7, -150]],
+    ['kater', [-32, -60]],
   ]);
   private leaflet?: typeof import('leaflet');
   private map?: Leaflet.Map;
@@ -747,8 +752,8 @@ export class App implements OnDestroy {
     this.adminNotice.set(null);
     if (!clubSlug || !description.trim()
       || eventDate < berlinCalendarDate(new Date())
-      || eventDate > berlinCalendarDate(new Date(), 31)) {
-      this.adminError.set('Choose a club, add event details, and use a date within the next 31 days.');
+      || eventDate > berlinCalendarDate(new Date(), MAX_UPCOMING_EVENT_DAYS)) {
+      this.adminError.set(`Choose a club, add event details, and use a date within the next ${MAX_UPCOMING_EVENT_DAYS} days.`);
       return;
     }
     this.adminBusy.set(true);
@@ -932,7 +937,7 @@ export class App implements OnDestroy {
   }
 
   protected eventDateMaximum(): string {
-    return berlinCalendarDate(new Date(), 31);
+    return berlinCalendarDate(new Date(), MAX_UPCOMING_EVENT_DAYS);
   }
 
   protected metricCaption(): string {

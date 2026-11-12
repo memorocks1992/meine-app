@@ -65,7 +65,7 @@
               <label><span>Club</span><select #eventClub required><option value="">Choose a club</option>@for (club of activeAdminClubs(); track club.slug) { <option [value]="club.slug">{{ club.name }}</option> }</select></label>
               <label><span>Date</span><input #eventDate type="date" [min]="eventDateMinimum()" [max]="eventDateMaximum()" required /></label>
               <label class="admin-event-description"><span>Event details</span><input #eventDescription maxlength="160" required placeholder="Event or lineup" /></label>
-              <label class="admin-event-djs"><span>DJs</span><input #eventDjs maxlength="160" placeholder="DJ names" /></label>
+              <label class="admin-event-djs"><span>DJs</span><input #eventDjs maxlength="1000" placeholder="DJ names" /></label>
               <button type="submit" class="admin-submit" [disabled]="adminBusy()">{{ adminBusy() ? 'Saving…' : 'Save event' }}</button>
             </form>
             <div class="admin-list">
