@@ -172,7 +172,7 @@
       <div class="section-heading">
         <div>
           <p class="eyebrow">BERLIN · TONIGHT</p>
-          <h2 id="map-title">Where's the party?</h2>
+          <h2 id="map-title"><span class="heading-symbol" aria-hidden="true">⌖</span>Where's the party?</h2>
         </div>
         <span class="club-count">{{ clubCount() }} clubs</span>
       </div>
@@ -193,7 +193,7 @@
     </section>
 
     <section class="ticker" aria-labelledby="ticker-title">
-      <div class="ticker-icon" aria-hidden="true">i</div>
+      <div class="ticker-icon" aria-hidden="true">◉</div>
       <div>
         <h2 id="ticker-title">Live updates</h2>
         <p>{{ liveUpdates()[0]?.text ?? 'No current updates.' }}</p>
@@ -222,7 +222,7 @@
               <span class="metric-note">{{ metricCaption() }}</span>
             </div>
             <div class="event-value">
-              <span class="eyebrow">🎫 TONIGHT</span>
+              <span class="eyebrow">✦ TONIGHT</span>
               <strong>{{ tonightEvent()?.description ?? 'No event listed yet' }}</strong>
               @if (tonightEvent()?.djs; as djs) {
                 <span class="event-djs">DJs: {{ djs }}</span>
@@ -234,7 +234,7 @@
           <div class="club-metrics">
             <section class="metric-card" aria-label="Door Odds">
               <div class="metric-title">
-                <h3>Door Odds</h3>
+                <h3><span class="heading-symbol" aria-hidden="true">↗</span>Door Odds</h3>
                 <strong>{{ clubMetrics()?.entryChance ?? '–' }}<small> / 10</small></strong>
               </div>
               <div class="meter" aria-hidden="true">
@@ -246,7 +246,7 @@
             </section>
             <section class="metric-card" aria-label="Vibe and DJs">
               <div class="metric-title">
-                <h3>Vibe &amp; DJs</h3>
+                <h3><span class="heading-symbol" aria-hidden="true">♫</span>Vibe &amp; DJs</h3>
                 <strong>{{ clubMetrics()?.mood ?? '–' }}<small> / 10</small></strong>
               </div>
               <div class="meter" aria-hidden="true">
@@ -258,7 +258,7 @@
             </section>
             <section class="metric-card entry-metric">
               <div class="metric-title">
-                <h3>Entry tonight</h3>
+                <h3><span class="heading-symbol" aria-hidden="true">€</span>Entry tonight</h3>
                 <strong>{{ clubMetrics()?.entryRange ?? '–' }}</strong>
               </div>
               <p>{{ metricCaption() }}</p>
@@ -276,7 +276,7 @@
 
           <div class="detail-actions">
             <button type="button" class="secondary-action" (click)="historyOpen.update(open => !open)" [attr.aria-expanded]="historyOpen()">
-              <span>🕒 When was this reported?</span><span>{{ historyOpen() ? '−' : '+' }}</span>
+              <span>◷ When was this reported?</span><span>{{ historyOpen() ? '−' : '+' }}</span>
             </button>
             @if (historyOpen()) {
               <div class="report-history">
@@ -299,7 +299,7 @@
               </div>
             }
             <button type="button" class="secondary-action" (click)="programOpen.update(open => !open)" [attr.aria-expanded]="programOpen()">
-              <span>📅 Upcoming events</span><span>{{ programOpen() ? '−' : '+' }}</span>
+              <span>▦ Upcoming events</span><span>{{ programOpen() ? '−' : '+' }}</span>
             </button>
             @if (programOpen()) {
               <div class="detail-empty">
@@ -317,7 +317,7 @@
           </div>
 
           <button type="button" class="report-toggle" (click)="toggleReport()" [attr.aria-expanded]="reportOpen()">
-            @if (reportOpen()) { Close } @else { ✍️ Report &amp; chat }
+            @if (reportOpen()) { Close } @else { ✎ Report &amp; chat }
           </button>
 
           @if (reportOpen()) {
@@ -397,7 +397,7 @@
             <div class="section-heading">
               <div>
                 <p class="eyebrow">{{ club.name }} · COMMUNITY</p>
-                <h2 id="forum-title">{{ club.name }} Forum</h2>
+                <h2 id="forum-title"><span class="heading-symbol" aria-hidden="true">✳</span>{{ club.name }} Forum</h2>
               </div>
               <span class="club-count">Posts and replies expire after 24 hours</span>
             </div>

@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1600" viewBox="0 0 1600 1600">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#18151f"/>
+      <stop offset="1" stop-color="#0d0b11"/>
+    </linearGradient>
+    <linearGradient id="ad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#26202e"/>
+      <stop offset="1" stop-color="#1b1721"/>
+    </linearGradient>
+    <pattern id="map" width="150" height="110" patternUnits="userSpaceOnUse" patternTransform="rotate(-12)">
+      <rect width="150" height="110" fill="#222c2a"/>
+      <path d="M0 25h150M0 82h150M34 0v110M112 0v110" stroke="#667267" stroke-width="2" opacity=".55"/>
+      <path d="M0 54h150M75 0v110" stroke="#c1aa75" stroke-width="3" opacity=".7"/>
+      <path d="m0 98 150-75" stroke="#849084" stroke-width="1" opacity=".6"/>
+    </pattern>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="18" stdDeviation="20" flood-color="#000" flood-opacity=".5"/>
+    </filter>
+  </defs>
+  <rect width="1600" height="1600" fill="url(#bg)"/>
+  <text x="76" y="65" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" letter-spacing="5" fill="#bc87ff">QUEUE BERLIN</text>
+  <text x="1520" y="65" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="16" letter-spacing="2" fill="#aaa4b4">WERBEBANNER · LAYOUTENTWURF</text>
+  <path d="M72 91h1456" stroke="#302b39"/>
+
+  <text x="74" y="142" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700" letter-spacing="3" fill="#aaa4b4">DESKTOP</text>
+  <g filter="url(#shadow)">
+    <rect x="68" y="164" width="1030" height="925" rx="18" fill="#100e15" stroke="#393241" stroke-width="2"/>
+    <path d="M86 182h994v54H86z" rx="10" fill="#14111a"/>
+    <rect x="92" y="192" width="30" height="30" rx="9" fill="#bc87ff"/>
+    <text x="107" y="214" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="900" fill="#170f22">Q</text>
+    <text x="136" y="212" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700" letter-spacing="2" fill="#f7f4fb">QUEUE <tspan fill="#bc87ff">BERLIN</tspan></text>
+    <text x="1022" y="212" text-anchor="end" font-family="Arial, sans-serif" font-size="13" fill="#c8c1d0">Choose a club　 Admin</text>
+    <path d="M86 236h994v1H86z" fill="#302b39"/>
+    <text x="104" y="276" font-family="Arial, sans-serif" font-size="11" font-weight="700" letter-spacing="2" fill="#aaa4b4">ALL DETAILS APPLY TO TONIGHT</text>
+    <text x="104" y="302" font-family="Arial, sans-serif" font-size="20" font-weight="700" fill="#f7f4fb">Thursday, 12 November 2026</text>
+
+    <rect x="104" y="322" width="946" height="112" rx="12" fill="url(#ad)" stroke="#51465e" stroke-width="1.5"/>
+    <rect x="120" y="339" width="48" height="76" rx="7" fill="#342b3d"/>
+    <path d="M144 351v49m-14-25h28" stroke="#bc87ff" stroke-width="3"/>
+    <text x="185" y="350" font-family="Arial, sans-serif" font-size="10" font-weight="700" letter-spacing="2" fill="#aaa4b4">WERBUNG</text>
+    <text x="185" y="378" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#f7f4fb">Gut durch die Berliner Nacht.</text>
+    <text x="185" y="402" font-family="Arial, sans-serif" font-size="13" fill="#aaa4b4">Nachtmobilität · Beispiel-Sponsorfläche</text>
+    <rect x="890" y="357" width="135" height="43" rx="8" fill="#bc87ff"/>
+    <text x="957" y="384" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="700" fill="#170f22">Mehr erfahren ↗</text>
+
+    <text x="104" y="478" font-family="Arial, sans-serif" font-size="11" font-weight="700" letter-spacing="2" fill="#aaa4b4">BERLIN · TONIGHT</text>
+    <text x="104" y="511" font-family="Arial, sans-serif" font-size="26" font-weight="700" fill="#f7f4fb">Where's the party?</text>
+    <rect x="104" y="530" width="946" height="318" rx="13" fill="url(#map)" stroke="#403a48" stroke-width="2"/>
+    <path d="M160 785 410 568l185 116 225-166 179 226" fill="none" stroke="#9d8b63" stroke-width="6" opacity=".65"/>
+    <path d="m154 602 233 144 205-123 214 154 172-173" fill="none" stroke="#a06d85" stroke-width="4" opacity=".55"/>
+    <g font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#f7f4fb">
+      <g><rect x="226" y="618" width="94" height="34" rx="17" fill="#14111a"/><circle cx="242" cy="635" r="5" fill="#fb7185"/><text x="254" y="639">Berghain</text></g>
+      <g><rect x="488" y="718" width="83" height="34" rx="17" fill="#14111a"/><circle cx="504" cy="735" r="5" fill="#c084fc"/><text x="516" y="739">Tresor</text></g>
+      <g><rect x="759" y="632" width="88" height="34" rx="17" fill="#14111a"/><circle cx="775" cy="649" r="5" fill="#fbbf24"/><text x="787" y="653">Sisyphos</text></g>
+      <g><rect x="620" y="556" width="107" height="34" rx="17" fill="#14111a"/><circle cx="636" cy="573" r="5" fill="#38bdf8"/><text x="648" y="577">KitKatClub</text></g>
+    </g>
+    <rect x="104" y="866" width="946" height="72" rx="12" fill="#15121c" stroke="#302b39"/>
+    <circle cx="137" cy="902" r="16" fill="#292137"/><text x="137" y="908" text-anchor="middle" font-family="Georgia, serif" font-size="19" font-weight="700" fill="#bc87ff">i</text>
+    <text x="166" y="898" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#f7f4fb">Live updates</text>
+    <text x="166" y="918" font-family="Arial, sans-serif" font-size="12" fill="#aaa4b4">No current updates.</text>
+    <rect x="104" y="954" width="946" height="103" rx="12" fill="#15121c" stroke="#302b39"/>
+    <text x="128" y="986" font-family="Arial, sans-serif" font-size="11" font-weight="700" letter-spacing="2" fill="#aaa4b4">CLUB DETAILS</text>
+    <text x="128" y="1024" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#f7f4fb">Berghain</text>
+    <text x="420" y="1011" font-family="Arial, sans-serif" font-size="13" fill="#aaa4b4">WAIT TIME　　　 TONIGHT　　　 DOOR ODDS</text>
+    <rect x="286" y="1089" width="594" height="13" rx="6" fill="#302b39"/>
+  </g>
+  <text x="582" y="1133" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#aaa4b4">Breites Banner unter dem Datumsbereich · ca. 728 × 90</text>
+
+  <text x="1153" y="142" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700" letter-spacing="3" fill="#aaa4b4">MOBIL</text>
+  <g filter="url(#shadow)">
+    <rect x="1150" y="164" width="370" height="850" rx="44" fill="#09080c" stroke="#5b5362" stroke-width="3"/>
+    <rect x="1165" y="185" width="340" height="807" rx="28" fill="#100e15"/>
+    <rect x="1275" y="193" width="120" height="19" rx="10" fill="#09080c"/>
+    <rect x="1180" y="231" width="28" height="28" rx="8" fill="#bc87ff"/>
+    <text x="1194" y="251" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="900" fill="#170f22">Q</text>
+    <text x="1218" y="250" font-family="Arial, sans-serif" font-size="13" font-weight="700" letter-spacing="1.2" fill="#f7f4fb">QUEUE <tspan fill="#bc87ff">BERLIN</tspan></text>
+    <text x="1185" y="291" font-family="Arial, sans-serif" font-size="9" font-weight="700" letter-spacing="1.5" fill="#aaa4b4">TONIGHT · 12 NOV</text>
+    <text x="1185" y="327" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#f7f4fb">Where's the party?</text>
+    <rect x="1185" y="344" width="300" height="213" rx="12" fill="url(#map)"/>
+    <g font-family="Arial, sans-serif" font-size="9" font-weight="700" fill="#fff">
+      <rect x="1208" y="402" width="69" height="26" rx="13" fill="#14111a"/><circle cx="1220" cy="415" r="4" fill="#fb7185"/><text x="1229" y="418">Berghain</text>
+      <rect x="1332" y="464" width="58" height="26" rx="13" fill="#14111a"/><circle cx="1344" cy="477" r="4" fill="#c084fc"/><text x="1353" y="480">Tresor</text>
+    </g>
+    <rect x="1185" y="571" width="300" height="55" rx="10" fill="#15121c" stroke="#302b39"/>
+    <circle cx="1207" cy="598" r="12" fill="#292137"/><text x="1207" y="603" text-anchor="middle" font-family="Georgia, serif" font-size="15" font-weight="700" fill="#bc87ff">i</text>
+    <text x="1228" y="596" font-family="Arial, sans-serif" font-size="11" font-weight="700" fill="#f7f4fb">Live updates</text>
+    <text x="1228" y="612" font-family="Arial, sans-serif" font-size="9" fill="#aaa4b4">No current updates.</text>
+    <rect x="1185" y="641" width="300" height="117" rx="12" fill="url(#ad)" stroke="#51465e" stroke-width="1.5"/>
+    <text x="1200" y="661" font-family="Arial, sans-serif" font-size="8" font-weight="700" letter-spacing="1.5" fill="#aaa4b4">WERBUNG</text>
+    <text x="1200" y="688" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#f7f4fb">Gut durch die</text>
+    <text x="1200" y="706" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#f7f4fb">Berliner Nacht.</text>
+    <text x="1200" y="730" font-family="Arial, sans-serif" font-size="9" fill="#aaa4b4">Nachtmobilität · Beispiel</text>
+    <rect x="1379" y="713" width="91" height="30" rx="7" fill="#bc87ff"/>
+    <text x="1424" y="733" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#170f22">Öffnen ↗</text>
+    <rect x="1185" y="772" width="300" height="163" rx="12" fill="#15121c" stroke="#302b39"/>
+    <text x="1200" y="802" font-family="Arial, sans-serif" font-size="10" font-weight="700" letter-spacing="1.5" fill="#aaa4b4">FRIEDRICHSHAIN</text>
+    <text x="1200" y="831" font-family="Arial, sans-serif" font-size="20" font-weight="700" fill="#f7f4fb">Berghain</text>
+    <path d="M1200 848h270" stroke="#302b39"/>
+    <text x="1200" y="876" font-family="Arial, sans-serif" font-size="9" fill="#aaa4b4">WAIT TIME　　 EVENT TONIGHT</text>
+    <text x="1200" y="915" font-family="Arial, sans-serif" font-size="13" font-weight="700" fill="#f7f4fb">– min　　　　 No event listed</text>
+  </g>
+  <text x="1335" y="1051" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#aaa4b4">Kompaktes Banner · ca. 320 × 100</text>
+  <path d="M72 1210h1456" stroke="#302b39"/>
+  <text x="800" y="1270" text-anchor="middle" font-family="Arial, sans-serif" font-size="17" font-weight="700" letter-spacing="2" fill="#bc87ff">VORSCHLAG: EINE KLAR GEKENNZEICHNETE FLÄCHE PRO ANSICHT</text>
+  <text x="800" y="1310" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" fill="#aaa4b4">Keine Pop-ups, keine überdeckten Inhalte, keine automatisch startenden Videos.</text>
+  <text x="800" y="1346" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#817a8c">Beispielanzeige / Platzhalter — nicht live geschaltet</text>
+</svg>
