@@ -4,7 +4,7 @@ A responsive web prototype for Berlin's club scene. The map shows the initial cl
 
 ## Supabase setup
 
-1. Create a Supabase project and apply the SQL files in [`supabase/migrations`](./supabase/migrations) in filename order using its SQL Editor. The latest migration adds a primary key to `live_updates`, so existing rows can be edited and deleted in the Table Editor.
+1. Create a Supabase project and apply the SQL files in [`supabase/migrations`](./supabase/migrations) in filename order using its SQL Editor. The migrations add a primary key to `live_updates`, so existing rows can be edited and deleted in the Table Editor.
    The event seed migration is a snapshot of verified club-calendar listings as of 2026-11-12; review and refresh those dates before reusing it later.
 2. Copy the project URL and publishable (anon) key from **Project Settings → API** into `supabaseUrl` and `supabaseAnonKey` in [`src/environments/environment.ts`](./src/environments/environment.ts). These are browser-visible project settings; never put a `service_role` key in the app.
 3. Create the admin account from the Supabase Dashboard (Authentication → Users → Add user), then grant it the admin role in the SQL Editor:
@@ -19,7 +19,9 @@ A responsive web prototype for Berlin's club scene. The map shows the initial cl
 
 The report cooldown uses a random browser ID stored in local storage and is enforced by the database per club for 10 minutes. It is not a substitute for stronger abuse prevention (for example, CAPTCHA or server-side IP throttling) before a public launch. The initial club coordinates and addresses still need verification.
 
-The public report flow and admin authentication are wired to these tables. After an admin signs in, the dashboard can add/edit clubs, hide or publish them, schedule events, publish or remove live updates, and remove visitor reports. Hiding a club preserves its historical reports and events. Until the Supabase project is configured, submission and sign-in stay disabled rather than pretending data was saved.
+Reports are tied to the club event scheduled for that Berlin calendar date. All reports for that event contribute to its displayed averages; the database removes reports from previous dates shortly after midnight Berlin time. Schedule each date separately for events spanning multiple calendar days.
+
+The public report flow and admin authentication are wired to these tables. After an admin signs in, the dashboard can add/edit clubs, hide or publish them, schedule events, publish or remove live updates, and remove visitor reports. Hiding a club preserves its events, while reports expire after their event date. Until the Supabase project is configured, submission and sign-in stay disabled rather than pretending data was saved.
 
 ## Development server
 

@@ -142,11 +142,12 @@ describe('App', () => {
     expect(getForumPolicyNotice('', 'Have a nice evening')).toBeNull();
   });
 
-  it('should average live reports from the last three hours', () => {
+  it('should average every report for the current event day', () => {
     const now = new Date('2026-11-10T21:00:00+01:00');
     const reports: PublicReport[] = [
-      { id: '1', club_slug: 'berghain', wait_minutes: 20, entry_chance: 6, mood: 8, entry_range: '€15–20', created_at: '2026-11-10T20:30:00+01:00' },
-      { id: '2', club_slug: 'berghain', wait_minutes: 40, entry_chance: 8, mood: 6, entry_range: '€15–20', created_at: '2026-11-10T19:30:00+01:00' },
+      { id: '1', club_slug: 'berghain', event_id: 'event-1', wait_minutes: 20, entry_chance: 6, mood: 8, entry_range: '€15–20', created_at: '2026-11-10T20:30:00+01:00' },
+      { id: '2', club_slug: 'berghain', event_id: 'event-1', wait_minutes: 40, entry_chance: 8, mood: 6, entry_range: '€15–20', created_at: '2026-11-10T16:30:00+01:00' },
+      { id: '3', club_slug: 'berghain', event_id: 'event-0', wait_minutes: 200, entry_chance: 1, mood: 1, entry_range: '€30+', created_at: '2026-11-09T23:30:00+01:00' },
     ];
 
     expect(calculateClubMetrics(reports, now)).toEqual({
@@ -159,20 +160,20 @@ describe('App', () => {
     });
   });
 
-  it('should fall back to reports from the same party-night weekday and time', () => {
+  it('should not use reports from a previous event day', () => {
     const now = new Date('2026-11-10T21:00:00+01:00');
     const reports: PublicReport[] = [
-      { id: '1', club_slug: 'berghain', wait_minutes: 50, entry_chance: 4, mood: null, entry_range: '€20–30', created_at: '2026-11-03T20:30:00+01:00' },
-      { id: '2', club_slug: 'berghain', wait_minutes: 120, entry_chance: 2, mood: 3, entry_range: '€30+', created_at: '2026-11-03T18:00:00+01:00' },
+      { id: '1', club_slug: 'berghain', event_id: 'event-1', wait_minutes: 50, entry_chance: 4, mood: null, entry_range: '€20–30', created_at: '2026-11-03T20:30:00+01:00' },
+      { id: '2', club_slug: 'berghain', event_id: 'event-2', wait_minutes: 120, entry_chance: 2, mood: 3, entry_range: '€30+', created_at: '2026-11-03T18:00:00+01:00' },
     ];
 
     expect(calculateClubMetrics(reports, now)).toEqual({
-      waitMinutes: 50,
-      entryChance: 4,
+      waitMinutes: null,
+      entryChance: null,
       mood: null,
-      entryRange: '€20–30',
-      count: 1,
-      source: 'historical',
+      entryRange: null,
+      count: 0,
+      source: 'none',
     });
   });
 });

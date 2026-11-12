@@ -218,12 +218,12 @@
           </div>
           <div class="club-summary">
             <div class="wait-value">
-              <span class="eyebrow">WAIT TIME</span>
+              <span class="eyebrow"><svg class="summary-label-icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.25" /><path d="M8 4.5V8l2.25 1.5" /></svg>WAIT TIME</span>
               <strong>{{ clubMetrics()?.waitMinutes ?? '–' }} <small>min</small></strong>
               <span class="metric-note">{{ metricCaption() }}</span>
             </div>
             <div class="event-value">
-              <span class="eyebrow">✦ TONIGHT</span>
+              <span class="eyebrow"><span aria-hidden="true">✦</span>TONIGHT</span>
               <strong>{{ tonightEvent()?.description ?? 'No event listed yet' }}</strong>
               @if (tonightEvent()?.djs; as djs) {
                 <span class="event-djs">DJs: {{ djs }}</span>
@@ -235,7 +235,7 @@
           <div class="club-metrics">
             <section class="metric-card" aria-label="Door Odds">
               <div class="metric-title">
-                <h3><span class="heading-symbol" aria-hidden="true">↗</span>Door Odds</h3>
+                <h3><svg class="door-symbol" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 14V2h10v12M6 14V4h7M11 9h.01" /></svg>Door Odds</h3>
                 <strong>{{ clubMetrics()?.entryChance ?? '–' }}<small> / 10</small></strong>
               </div>
               <div class="meter" aria-hidden="true">
@@ -524,13 +524,13 @@
         <h2>Data we process and why</h2>
         <p>When you visit the website, the hosting provider may process technical connection data needed to deliver, maintain and secure the service, such as your IP address, the time of the request, the requested page, and browser or device information. The applicable retention period for server logs must be confirmed with the hosting provider.</p>
         <p>The website creates a random visitor ID and stores it in your browser's local storage. It is sent to Supabase with reports, forum posts and likes to associate these actions with the same browser and limit repeated club reports. The ID does not itself contain your name, but it is a pseudonymous identifier and should not be considered anonymous. You can remove it by clearing this website's stored data in your browser; this may prevent us from associating your previous likes with you.</p>
-        <p>For a club report, we process the information you select about waiting time, likelihood of entry, atmosphere and price, as well as the club, submission time and visitor ID. Reports are used to calculate current and historical averages. For forum posts and replies, we process and publish the display name you choose, the text and the time of submission. Posts and replies are publicly visible while available. Please do not publish sensitive or other personal information about yourself or anyone else.</p>
+        <p>For a club report, we process the information you select about waiting time, likelihood of entry, atmosphere and price, as well as the club, event, submission time and visitor ID. Reports for the same event are used to calculate its current averages. For forum posts and replies, we process and publish the display name you choose, the text and the time of submission. Posts and replies are publicly visible while available. Please do not publish sensitive or other personal information about yourself or anyone else.</p>
         <p>Where applicable, processing is necessary to provide the features you request (Article 6(1)(b) GDPR) and is based on our legitimate interests in operating and securing the service and preventing abuse (Article 6(1)(f) GDPR). The specific legal basis and balancing assessment should be confirmed before launch.</p>
         <h2>Service providers and external content</h2>
         <p>The website is hosted by Render. Reports, forum content and administration features are processed through Supabase. When the map loads, your browser also requests map tiles from OpenStreetMap servers. The relevant provider receives technically necessary connection data, including your IP address. See <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap's information</a> for more details.</p>
         <p>Render and Supabase may process data as part of their services and according to their respective settings. Before launch, the data processing agreements, configured storage regions, any transfers to countries outside the EEA and the applicable safeguards should be checked.</p>
         <h2>How long we keep data</h2>
-        <p>Forum posts and replies are automatically deleted after 24 hours; the cleanup job is scheduled to run every five minutes. The provider's technical backups may be subject to different retention periods. Club reports are not currently deleted automatically and remain stored until deleted by the administrator. Reports about forum content are also not automatically deleted and remain stored until reviewed or deleted by the administrator.</p>
+        <p>Forum posts and replies are automatically deleted after 24 hours; the cleanup job is scheduled to run every five minutes. Club reports are automatically deleted shortly after midnight (Berlin time) on the calendar day after their event date. The cleanup job runs every five minutes, so deletion may be delayed briefly. The provider's technical backups may be subject to different retention periods. Reports about forum content are not automatically deleted and remain stored until reviewed or deleted by the administrator.</p>
         <h2>Your privacy rights</h2>
         <p>Subject to applicable legal requirements, you may request access to, correction or deletion of your personal data, or restriction of its processing; object to processing based on legitimate interests; and, where applicable, request data portability or withdraw consent. Contact us at <a href="mailto:info.queue@web.de">info.queue@web.de</a>. Please describe your request so we can identify the relevant data. Where necessary, we may ask for reasonable information to verify your identity.</p>
         <p>You also have the right to lodge a complaint with a data protection supervisory authority. In Berlin, this is the <a href="https://www.datenschutz-berlin.de/" target="_blank" rel="noopener noreferrer">Berlin Commissioner for Data Protection and Freedom of Information</a>. These notices are based in particular on the <a href="https://eur-lex.europa.eu/eli/reg/2016/679/oj?locale=en" target="_blank" rel="noopener noreferrer">General Data Protection Regulation (GDPR)</a>.</p>

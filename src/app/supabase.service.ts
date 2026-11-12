@@ -6,6 +6,7 @@ import { environment } from '../environments/environment';
 export interface PublicReport {
   id: string;
   club_slug: string;
+  event_id: string | null;
   wait_minutes: number | null;
   entry_chance: number | null;
   mood: number | null;
@@ -94,20 +95,35 @@ export class SupabaseService {
     this.isConfigured = Boolean(environment.supabaseUrl && environment.supabaseAnonKey);
   }
 
-  async loadClubReports(clubSlug: string): Promise<PublicReport[]> {
+  async loadClubReports(clubSlug: string, eventId: string): Promise<PublicReport[]> {
     const client = await this.requireClient();
-    const { data, error } = await client
-      .from('public_reports')
-      .select('id, club_slug, wait_minutes, entry_chance, mood, entry_range, created_at')
-      .eq('club_slug', clubSlug)
-      .order('created_at', { ascending: false })
-      .limit(500);
+    const pageSize = 1000;
+    const reports: PublicReport[] = [];
+    let offset = 0;
 
-    if (error) {
-      throw error;
+    while (true) {
+      const { data, error } = await client
+        .from('public_reports')
+        .select('id, club_slug, event_id, wait_minutes, entry_chance, mood, entry_range, created_at')
+        .eq('club_slug', clubSlug)
+        .eq('event_id', eventId)
+        .order('created_at', { ascending: true })
+        .order('id', { ascending: true })
+        .range(offset, offset + pageSize - 1);
+
+      if (error) {
+        throw error;
+      }
+
+      const page = data ?? [];
+      reports.push(...page);
+      if (page.length < pageSize) {
+        break;
+      }
+      offset += pageSize;
     }
 
-    return data ?? [];
+    return reports.sort((left, right) => right.created_at.localeCompare(left.created_at));
   }
 
   async loadClubEvents(clubSlug: string): Promise<ClubEvent[]> {
@@ -124,6 +140,21 @@ export class SupabaseService {
     }
 
     return data ?? [];
+  }
+
+  async loadClubSlugsWithEventsOn(eventDate: string): Promise<string[]> {
+    const client = await this.requireClient();
+    const { data, error } = await client
+      .from('events')
+      .select('club_slug')
+      .eq('event_date', eventDate)
+      .limit(1000);
+
+    if (error) {
+      throw error;
+    }
+
+    return [...new Set((data ?? []).map((event) => event.club_slug))];
   }
 
   async loadClubs(includeInactive = false): Promise<ManagedClub[]> {
@@ -160,7 +191,7 @@ export class SupabaseService {
     const client = await this.requireClient();
     const { data, error } = await client
       .from('reports')
-      .select('id, club_slug, wait_minutes, entry_chance, mood, entry_range, created_at')
+      .select('id, club_slug, event_id, wait_minutes, entry_chance, mood, entry_range, created_at')
       .order('created_at', { ascending: false })
       .limit(100);
     if (error) {

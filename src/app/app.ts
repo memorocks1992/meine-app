@@ -53,7 +53,7 @@ export interface ClubMetrics {
   mood: number | null;
   entryRange: string | null;
   count: number;
-  source: 'live' | 'historical' | 'none';
+  source: 'live' | 'none';
 }
 
 const FORUM_POLICY_TERMS = [
@@ -138,39 +138,15 @@ export function getPartyNight(now: Date): PartyNight {
 }
 
 export function calculateClubMetrics(reports: PublicReport[], now: Date): ClubMetrics {
-  const liveCutoff = now.getTime() - 3 * 60 * 60 * 1000;
+  const eventDate = berlinCalendarDate(now);
   const liveReports = reports.filter((report) => {
     const timestamp = new Date(report.created_at).getTime();
-    return timestamp >= liveCutoff && timestamp <= now.getTime();
+    return Number.isFinite(timestamp)
+      && timestamp <= now.getTime()
+      && berlinCalendarDate(new Date(timestamp)) === eventDate;
   });
 
-  let relevantReports = liveReports;
-  let source: ClubMetrics['source'] = liveReports.length ? 'live' : 'none';
-
-  if (!liveReports.length) {
-    const todayNight = partyNightDate(now);
-    const weekday = todayNight.getUTCDay();
-    const nowParts = berlinParts(now);
-    const currentMinutes = Number(nowParts['hour']) * 60 + Number(nowParts['minute']);
-
-    relevantReports = reports.filter((report) => {
-      const reportDate = new Date(report.created_at);
-      if (!Number.isFinite(reportDate.getTime()) || reportDate.getTime() > now.getTime()) {
-        return false;
-      }
-
-      const reportNight = partyNightDate(reportDate);
-      const reportParts = berlinParts(reportDate);
-      const reportMinutes = Number(reportParts['hour']) * 60 + Number(reportParts['minute']);
-      const minuteDifference = Math.abs(currentMinutes - reportMinutes);
-
-      return reportNight.getUTCDay() === weekday
-        && Math.min(minuteDifference, 1440 - minuteDifference) <= 60;
-    });
-    if (relevantReports.length) {
-      source = 'historical';
-    }
-  }
+  const source: ClubMetrics['source'] = liveReports.length ? 'live' : 'none';
 
   const average = (values: Array<number | null>): number | null => {
     const present = values.filter((value): value is number => value !== null);
@@ -179,7 +155,7 @@ export function calculateClubMetrics(reports: PublicReport[], now: Date): ClubMe
       : null;
   };
   const priceCounts = new Map<string, number>();
-  for (const report of relevantReports) {
+  for (const report of liveReports) {
     if (report.entry_range) {
       priceCounts.set(report.entry_range, (priceCounts.get(report.entry_range) ?? 0) + 1);
     }
@@ -189,11 +165,11 @@ export function calculateClubMetrics(reports: PublicReport[], now: Date): ClubMe
     .sort((left, right) => right[1] - left[1])[0]?.[0] ?? null;
 
   return {
-    waitMinutes: average(relevantReports.map((report) => report.wait_minutes)),
-    entryChance: average(relevantReports.map((report) => report.entry_chance)),
-    mood: average(relevantReports.map((report) => report.mood)),
+    waitMinutes: average(liveReports.map((report) => report.wait_minutes)),
+    entryChance: average(liveReports.map((report) => report.entry_chance)),
+    mood: average(liveReports.map((report) => report.mood)),
     entryRange,
-    count: relevantReports.length,
+    count: liveReports.length,
     source,
   };
 }
@@ -208,6 +184,8 @@ export class App implements OnDestroy {
 
   protected readonly selectedClub = signal<Club | null>(null);
   protected readonly partyNight = signal(getPartyNight(new Date()));
+  protected readonly currentCalendarDate = signal(berlinCalendarDate(new Date()));
+  protected readonly clubsWithEventsToday = signal<Set<string>>(new Set());
   protected readonly meterSegments = Array.from({ length: 10 }, (_, index) => index + 1);
   protected readonly waitOptions = [0, 10, 20, 30, 45, 60, 90, 120, 180, 210, 240];
   protected readonly entryRanges = ['Up to €10', '€10–15', '€15–20', '€20–30', '€30+'];
@@ -252,8 +230,7 @@ export class App implements OnDestroy {
   protected readonly recentClubReports = computed(() => this.clubReports().slice(0, 15));
   protected readonly clubEvents = signal<ClubEvent[]>([]);
   protected readonly tonightEvent = computed(() => {
-    this.partyNight();
-    return this.clubEvents().find((event) => event.event_date === getPartyNightKey(new Date())) ?? null;
+    return this.clubEvents().find((event) => event.event_date === this.currentCalendarDate()) ?? null;
   });
   protected readonly clubDataStatus = signal<ClubDataStatus>('idle');
   protected readonly adminOpen = signal(false);
@@ -321,6 +298,19 @@ export class App implements OnDestroy {
   private partyNightInterval?: ReturnType<typeof setInterval>;
   private readonly refreshPartyNight = () => {
     this.partyNight.set(getPartyNight(new Date()));
+    const calendarDate = berlinCalendarDate(new Date());
+    if (calendarDate !== this.currentCalendarDate()) {
+      this.currentCalendarDate.set(calendarDate);
+      this.clubsWithEventsToday.set(new Set());
+      this.refreshClubIcons();
+      void this.loadTodayEventClubs();
+      const club = this.selectedClub();
+      if (club) {
+        this.clubMetrics.set(null);
+        this.clubReports.set([]);
+        void this.loadClubData(club);
+      }
+    }
   };
   private readonly handleVisibilityChange = () => {
     if (document.visibilityState === 'visible') {
@@ -342,6 +332,7 @@ export class App implements OnDestroy {
       void this.restoreAdminSession();
       void this.loadPublicClubs();
       void this.loadPublicLiveUpdate();
+      void this.loadTodayEventClubs();
       void this.initializeMap();
     });
   }
@@ -772,6 +763,7 @@ export class App implements OnDestroy {
       });
       this.adminNotice.set('Event saved.');
       await this.loadAdminDashboard();
+      await this.loadTodayEventClubs();
       const selected = this.selectedClub();
       if (selected?.id === clubSlug) {
         await this.loadClubData(selected);
@@ -795,6 +787,7 @@ export class App implements OnDestroy {
       await this.supabase.deleteEvent(event.id);
       this.adminNotice.set('Event deleted.');
       await this.loadAdminDashboard();
+      await this.loadTodayEventClubs();
     } catch (error) {
       console.error(`Unable to delete event ${event.id}.`, error);
       this.adminError.set(this.getErrorMessage(error));
@@ -953,9 +946,7 @@ export class App implements OnDestroy {
       case 'ready': {
         const metrics = this.clubMetrics();
         if (!metrics || metrics.source === 'none') return 'No data yet';
-        return metrics.source === 'live'
-          ? `${metrics.count} reports in the last 3 hours`
-          : `Typical for this time · ${metrics.count} reports`;
+        return `${metrics.count} reports for this event`;
       }
       default:
         return 'No data yet';
@@ -1043,6 +1034,23 @@ export class App implements OnDestroy {
     }
   }
 
+  private async loadTodayEventClubs(): Promise<void> {
+    if (!this.backendConfigured) {
+      return;
+    }
+    const eventDate = this.currentCalendarDate();
+    try {
+      const clubsWithEvents = await this.supabase.loadClubSlugsWithEventsOn(eventDate);
+      if (this.currentCalendarDate() !== eventDate) {
+        return;
+      }
+      this.clubsWithEventsToday.set(new Set(clubsWithEvents));
+      this.refreshClubIcons();
+    } catch (error) {
+      console.error(`Unable to load clubs with events on ${eventDate}.`, error);
+    }
+  }
+
   private async loadForum(clubSlug: string, page = this.forumPage()): Promise<void> {
     if (!this.backendConfigured) {
       this.forumStatus.set('idle');
@@ -1093,17 +1101,22 @@ export class App implements OnDestroy {
       return;
     }
     this.clubDataStatus.set('loading');
+    const eventDate = this.currentCalendarDate();
     try {
-      const [reports, events] = await Promise.all([
-        this.supabase.loadClubReports(club.id),
-        this.supabase.loadClubEvents(club.id),
-      ]);
-      if (this.selectedClub()?.id !== club.id) {
+      const events = await this.supabase.loadClubEvents(club.id);
+      if (this.selectedClub()?.id !== club.id || this.currentCalendarDate() !== eventDate) {
+        return;
+      }
+      this.clubEvents.set(events);
+      const currentEvent = events.find((event) => event.event_date === eventDate);
+      const reports = currentEvent
+        ? await this.supabase.loadClubReports(club.id, currentEvent.id)
+        : [];
+      if (this.selectedClub()?.id !== club.id || this.currentCalendarDate() !== eventDate) {
         return;
       }
       this.clubReports.set(reports);
       this.clubMetrics.set(calculateClubMetrics(reports, new Date()));
-      this.clubEvents.set(events);
       this.clubDataStatus.set('ready');
     } catch (error) {
       console.error(`Unable to load public data for ${club.name}.`, error);
@@ -1161,7 +1174,8 @@ export class App implements OnDestroy {
     const [offsetX, offsetY] = this.compactLayout
       ? this.compactLabelOffsets.get(club.id) ?? [0, 0]
       : this.labelOffsets.get(club.id) ?? [0, 0];
-    const color = /^#[\da-f]{6}$/i.test(club.color) ? club.color : '#bc87ff';
+    const hasEventToday = this.clubsWithEventsToday().has(club.id);
+    const color = hasEventToday ? '#4ade80' : '#f87171';
     const name = escapeHtml(club.name);
 
     return leaflet.divIcon({

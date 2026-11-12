@@ -624,6 +624,25 @@ main {
   font-weight: 500;
 }
 
+.club-summary .eyebrow {
+  display: inline-flex;
+  min-height: 12px;
+  align-items: center;
+  gap: 4px;
+  line-height: 12px;
+}
+
+.summary-label-icon {
+  width: 12px;
+  height: 12px;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.5;
+}
+
 .event-value {
   display: flex;
   flex-direction: column;
@@ -1414,6 +1433,7 @@ footer {
   left: -4px;
   width: 8px;
   height: 8px;
+  animation: live-indicator-blink 1.2s ease-in-out infinite;
   border: 2px solid #16121c;
   border-radius: 50%;
   background: var(--marker-color);
@@ -1451,6 +1471,7 @@ footer {
   width: 8px;
   height: 8px;
   flex: 0 0 auto;
+  animation: live-indicator-blink 1.2s ease-in-out infinite;
   border-radius: 50%;
   background: var(--marker-color);
   box-shadow: 0 0 9px var(--marker-color);
@@ -1944,7 +1965,9 @@ main {
 @media (prefers-reduced-motion: reduce) {
   .ticker,
   .ticker-icon,
-  .live-indicator-dot {
+  .live-indicator-dot,
+  .club-map-anchor,
+  .club-map-pin {
     transition: none;
     animation: none;
   }
@@ -2035,6 +2058,17 @@ main {
   align-items: center;
   gap: 7px;
   font-size: inherit;
+}
+
+.door-symbol {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: var(--purple);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.4;
 }
 
 .metric-title > strong {
