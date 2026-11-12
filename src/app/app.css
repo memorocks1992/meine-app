@@ -1038,9 +1038,7 @@ main {
 }
 
 .forum-consent-banner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  display: grid;
   gap: 12px;
   margin: 0 0 12px;
   border: 1px solid #55466a;
@@ -1057,7 +1055,7 @@ main {
 }
 
 .forum-consent-banner .secondary-action {
-  flex: 0 0 auto;
+  justify-self: start;
 }
 
 .forum-compose {
