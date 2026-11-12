@@ -5,6 +5,7 @@ app-root {
 }
 
 .app-shell {
+  --heading-size: 19px;
   --surface: #15121c;
   --line: #302b39;
   --muted: #aaa4b4;
@@ -1719,10 +1720,14 @@ footer {
 }
 
 .app-shell :is(h1, h2, h3) {
-  font-size: 19px !important;
+  font-size: var(--heading-size) !important;
   font-weight: 650;
   letter-spacing: -0.02em;
   line-height: 1.25;
+}
+
+.empty-selection strong {
+  font-size: var(--heading-size);
 }
 
 .topbar {
