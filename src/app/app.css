@@ -38,6 +38,12 @@ app-root {
   text-decoration: none;
 }
 
+.brand-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
 .brand-mark {
   display: grid;
   width: 34px;
@@ -58,6 +64,11 @@ app-root {
 
 .brand-name strong {
   color: var(--purple);
+}
+
+.motto {
+  margin: 0;
+  line-height: 1;
 }
 
 .club-count {
@@ -330,9 +341,6 @@ app-root {
 }
 
 .night-bar {
-  position: sticky;
-  z-index: 1000;
-  top: 68px;
   display: flex;
   min-height: 91px;
   align-items: center;
@@ -1896,11 +1904,25 @@ main {
 .ticker-icon {
   width: 30px;
   height: 30px;
+  place-items: center;
   border-radius: 50%;
   background: #292137;
-  color: var(--purple);
   box-shadow: 0 0 0 5px rgb(188 135 255 / 7%);
   transition: box-shadow 180ms ease, transform 180ms ease;
+}
+
+.live-indicator-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #4ade80;
+  box-shadow: 0 0 10px rgb(74 222 128 / 65%);
+  animation: live-indicator-blink 1.2s ease-in-out infinite;
+}
+
+.ticker.offline .live-indicator-dot {
+  background: #f87171;
+  box-shadow: 0 0 10px rgb(248 113 113 / 65%);
 }
 
 .ticker:hover .ticker-icon {
@@ -1910,10 +1932,18 @@ main {
     0 0 18px rgb(188 135 255 / 28%);
 }
 
+@keyframes live-indicator-blink {
+  50% {
+    opacity: 0.3;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .ticker,
-  .ticker-icon {
+  .ticker-icon,
+  .live-indicator-dot {
     transition: none;
+    animation: none;
   }
 }
 

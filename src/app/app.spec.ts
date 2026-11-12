@@ -36,6 +36,38 @@ describe('App', () => {
     expect(compiled.querySelector('.preview-badge')).toBeNull();
   });
 
+  it('should show a short German queue motto below the brand name at eyebrow size', async () => {
+    const fixture = TestBed.createComponent(App);
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const motto = compiled.querySelector<HTMLElement>('.motto');
+    const tonightLabel = compiled.querySelector<HTMLElement>('.night-bar .eyebrow');
+
+    expect(motto?.textContent).toContain('In Berlin steht man an');
+    expect(motto?.parentElement?.classList.contains('brand-copy')).toBe(true);
+    expect(motto?.previousElementSibling?.classList.contains('brand-name')).toBe(true);
+    expect(getComputedStyle(motto!).fontSize).toBe(getComputedStyle(tonightLabel!).fontSize);
+  });
+
+  it('should let the party night date scroll with the page', async () => {
+    const fixture = TestBed.createComponent(App);
+    await fixture.whenStable();
+    const nightBar = (fixture.nativeElement as HTMLElement).querySelector('.night-bar');
+
+    expect(nightBar).not.toBeNull();
+    expect(getComputedStyle(nightBar!).position).toBe('static');
+  });
+
+  it('should show the offline live-update state when there are no updates', async () => {
+    const fixture = TestBed.createComponent(App);
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+
+    expect(compiled.querySelector('.ticker')?.classList.contains('offline')).toBe(true);
+    expect(compiled.querySelector('.ticker p')?.textContent).toContain('Offline. No current updates');
+    expect(compiled.querySelector('.live-indicator-dot')).not.toBeNull();
+  });
+
   it('should show a dismissible community information banner', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();

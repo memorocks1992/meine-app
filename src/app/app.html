@@ -2,7 +2,10 @@
   <header class="topbar">
     <a class="brand" href="/" aria-label="Queue Berlin home">
       <span class="brand-mark" aria-hidden="true">Q</span>
-      <span class="brand-name">QUEUE <strong>BERLIN</strong></span>
+      <span class="brand-copy">
+        <span class="brand-name">QUEUE <strong>BERLIN</strong></span>
+        <span class="eyebrow motto">In Berlin steht man an</span>
+      </span>
     </a>
   </header>
 
@@ -190,11 +193,11 @@
       </p>
     </section>
 
-    <section class="ticker" aria-labelledby="ticker-title">
-      <div class="ticker-icon" aria-hidden="true">◉</div>
+    <section class="ticker" [class.offline]="!liveUpdates()[0]" aria-labelledby="ticker-title">
+      <div class="ticker-icon" aria-hidden="true"><span class="live-indicator-dot"></span></div>
       <div>
         <h2 id="ticker-title">Live updates</h2>
-        <p>{{ liveUpdates()[0]?.text ?? 'No current updates.' }}</p>
+        <p>{{ liveUpdates()[0]?.text ?? 'Offline. No current updates' }}</p>
         @if (liveUpdates()[0]; as update) {
           <span class="ticker-time">{{ formatLiveUpdateDate(update.datum) }} · {{ formatLiveUpdateTime(update.uhrzeit) }}</span>
         }
