@@ -27,6 +27,9 @@ export interface ClubEvent {
   id: string;
   club_slug: string;
   event_date: string;
+  event_time: string;
+  event_end_date: string;
+  event_end_time: string;
   description: string;
   djs: string | null;
 }
@@ -130,10 +133,9 @@ export class SupabaseService {
     const client = await this.requireClient();
     const { data, error } = await client
       .from('events')
-      .select('id, club_slug, event_date, description, djs')
+      .select('id, club_slug, event_date, event_time, event_end_date, event_end_time, description, djs')
       .eq('club_slug', clubSlug)
-      .order('event_date', { ascending: true })
-      .limit(32);
+      .order('event_date', { ascending: true });
 
     if (error) {
       throw error;
@@ -142,19 +144,20 @@ export class SupabaseService {
     return data ?? [];
   }
 
-  async loadClubSlugsWithEventsOn(eventDate: string): Promise<string[]> {
+  async loadEventsOverlappingDate(eventDate: string): Promise<ClubEvent[]> {
     const client = await this.requireClient();
     const { data, error } = await client
       .from('events')
-      .select('club_slug')
-      .eq('event_date', eventDate)
+      .select('id, club_slug, event_date, event_time, event_end_date, event_end_time, description, djs')
+      .lte('event_date', eventDate)
+      .gte('event_end_date', eventDate)
       .limit(1000);
 
     if (error) {
       throw error;
     }
 
-    return [...new Set((data ?? []).map((event) => event.club_slug))];
+    return data ?? [];
   }
 
   async loadClubs(includeInactive = false): Promise<ManagedClub[]> {
@@ -204,7 +207,7 @@ export class SupabaseService {
     const client = await this.requireClient();
     const { data, error } = await client
       .from('events')
-      .select('id, club_slug, event_date, description, djs')
+      .select('id, club_slug, event_date, event_time, event_end_date, event_end_time, description, djs')
       .order('event_date', { ascending: true })
       .limit(100);
     if (error) {
@@ -229,7 +232,7 @@ export class SupabaseService {
     }
   }
 
-  async saveEvent(event: Pick<ClubEvent, 'club_slug' | 'event_date' | 'description' | 'djs'>): Promise<void> {
+  async saveEvent(event: Pick<ClubEvent, 'club_slug' | 'event_date' | 'event_time' | 'event_end_date' | 'event_end_time' | 'description' | 'djs'>): Promise<void> {
     const client = await this.requireClient();
     const { error } = await client.from('events').upsert(event, { onConflict: 'club_slug,event_date' });
     if (error) {

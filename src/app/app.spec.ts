@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { App, calculateClubMetrics, getForumPolicyNotice, getPartyNight, getReportEventNotice } from './app';
+import { App, calculateClubMetrics, getCurrentClubEvent, getForumPolicyNotice, getPartyNight, getReportEventNotice } from './app';
 import type { PublicReport } from './supabase.service';
 
 describe('App', () => {
@@ -121,6 +121,31 @@ describe('App', () => {
     expect(atCutoff.date).toBe('Friday, 17 July 2026');
   });
 
+  it('should keep an event visible until its configured end date and time', () => {
+    const saturdayEvent = {
+      id: 'saturday',
+      club_slug: 'berghain',
+      event_date: '2026-11-14',
+      event_time: '22:00:00',
+      event_end_date: '2026-11-16',
+      event_end_time: '06:00:00',
+      description: 'Saturday event',
+      djs: null,
+    };
+    const events = [saturdayEvent];
+
+    expect(getCurrentClubEvent(events, new Date('2026-11-14T22:00:00+01:00'))).toBe(saturdayEvent);
+    expect(getCurrentClubEvent(events, new Date('2026-11-16T05:59:00+01:00'))).toBe(saturdayEvent);
+    expect(getCurrentClubEvent(events, new Date('2026-11-16T06:00:00+01:00'))).toBeNull();
+  });
+
+  it('should select a later event when its time interval overlaps an earlier event', () => {
+    const saturdayEvent = { id: 'saturday', club_slug: 'berghain', event_date: '2026-11-14', event_time: '22:00:00', event_end_date: '2026-11-16', event_end_time: '06:00:00', description: 'Saturday event', djs: null };
+    const sundayEvent = { id: 'sunday', club_slug: 'berghain', event_date: '2026-11-15', event_time: '20:00:00', event_end_date: '2026-11-16', event_end_time: '06:00:00', description: 'Sunday event', djs: null };
+
+    expect(getCurrentClubEvent([saturdayEvent, sundayEvent], new Date('2026-11-15T21:00:00+01:00'))).toBe(sundayEvent);
+  });
+
   it('should prevent reports when no event is registered for the club', () => {
     expect(getReportEventNotice('ready', false, 'Berghain')).toBe(
       'There is currently no event registered for Berghain. Reports can only be submitted while an event is running.',
@@ -151,6 +176,24 @@ describe('App', () => {
     ];
 
     expect(calculateClubMetrics(reports, now)).toEqual({
+      waitMinutes: 30,
+      entryChance: 7,
+      mood: 7,
+      entryRange: '€15–20',
+      count: 2,
+      source: 'live',
+    });
+  });
+
+  it('should keep reports from earlier days of the same event interval', () => {
+    const now = new Date('2026-11-15T21:00:00+01:00');
+    const reports: PublicReport[] = [
+      { id: '1', club_slug: 'berghain', event_id: 'weekend-event', wait_minutes: 20, entry_chance: 6, mood: 8, entry_range: '€15–20', created_at: '2026-11-14T23:30:00+01:00' },
+      { id: '2', club_slug: 'berghain', event_id: 'weekend-event', wait_minutes: 40, entry_chance: 8, mood: 6, entry_range: '€15–20', created_at: '2026-11-15T20:30:00+01:00' },
+      { id: '3', club_slug: 'berghain', event_id: 'another-event', wait_minutes: 200, entry_chance: 1, mood: 1, entry_range: '€30+', created_at: '2026-11-15T20:00:00+01:00' },
+    ];
+
+    expect(calculateClubMetrics(reports, now, 'weekend-event')).toEqual({
       waitMinutes: 30,
       entryChance: 7,
       mood: 7,

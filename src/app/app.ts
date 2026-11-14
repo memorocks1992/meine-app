@@ -116,6 +116,7 @@ function berlinParts(date: Date): Record<string, string> {
       weekday: 'short',
       hour: '2-digit',
       minute: '2-digit',
+      second: '2-digit',
       hourCycle: 'h23',
     })
       .formatToParts(date)
@@ -144,6 +145,22 @@ function berlinCalendarDate(date: Date, daysFromNow = 0): string {
   return calendarDate.toISOString().slice(0, 10);
 }
 
+export function getCurrentClubEvent(events: ClubEvent[], now: Date): ClubEvent | null {
+  return events
+    .filter((event) => isClubEventActive(event, now))
+    .sort((left, right) =>
+      `${right.event_date}T${right.event_time}`.localeCompare(`${left.event_date}T${left.event_time}`),
+    )[0] ?? null;
+}
+
+function isClubEventActive(event: ClubEvent, now: Date): boolean {
+  const today = berlinCalendarDate(now);
+  const parts = berlinParts(now);
+  const currentDateTime = `${today}T${parts['hour']}:${parts['minute']}:${parts['second']}`;
+  return `${event.event_date}T${event.event_time.slice(0, 8)}` <= currentDateTime
+    && `${event.event_end_date}T${event.event_end_time.slice(0, 8)}` > currentDateTime;
+}
+
 export function getPartyNight(now: Date): PartyNight {
   const date = partyNightDate(now);
   const formatDate = (value: Date, options: Intl.DateTimeFormatOptions) =>
@@ -155,13 +172,15 @@ export function getPartyNight(now: Date): PartyNight {
   };
 }
 
-export function calculateClubMetrics(reports: PublicReport[], now: Date): ClubMetrics {
+export function calculateClubMetrics(reports: PublicReport[], now: Date, eventId?: string): ClubMetrics {
   const eventDate = berlinCalendarDate(now);
   const liveReports = reports.filter((report) => {
     const timestamp = new Date(report.created_at).getTime();
     return Number.isFinite(timestamp)
       && timestamp <= now.getTime()
-      && berlinCalendarDate(new Date(timestamp)) === eventDate;
+      && (eventId
+        ? report.event_id === eventId
+        : berlinCalendarDate(new Date(timestamp)) === eventDate);
   });
 
   const source: ClubMetrics['source'] = liveReports.length ? 'live' : 'none';
@@ -202,8 +221,10 @@ export class App implements OnDestroy {
 
   protected readonly selectedClub = signal<Club | null>(null);
   protected readonly partyNight = signal(getPartyNight(new Date()));
+  private readonly currentTime = signal(new Date());
   protected readonly currentCalendarDate = signal(berlinCalendarDate(new Date()));
   protected readonly clubsWithEventsToday = signal<Set<string>>(new Set());
+  private readonly eventIntervalsToday = signal<ClubEvent[]>([]);
   protected readonly meterSegments = Array.from({ length: 10 }, (_, index) => index + 1);
   protected readonly waitOptions = [0, 10, 20, 30, 45, 60, 90, 120, 180, 210, 240];
   protected readonly entryRanges = ['Up to €10', '€10–15', '€15–20', '€20–30', '€30+'];
@@ -247,9 +268,19 @@ export class App implements OnDestroy {
   protected readonly clubReports = signal<PublicReport[]>([]);
   protected readonly recentClubReports = computed(() => this.clubReports().slice(0, 15));
   protected readonly clubEvents = signal<ClubEvent[]>([]);
-  protected readonly tonightEvent = computed(() => {
-    return this.clubEvents().find((event) => event.event_date === this.currentCalendarDate()) ?? null;
-  });
+  protected readonly upcomingClubEvents = computed(() =>
+    this.clubEvents()
+      .filter((event) => {
+        const today = this.currentCalendarDate();
+        if (event.event_end_date !== today) {
+          return event.event_end_date > today;
+        }
+        const parts = berlinParts(this.currentTime());
+        return event.event_end_time > `${parts['hour']}:${parts['minute']}:${parts['second']}`;
+      })
+      .sort((left, right) => left.event_date.localeCompare(right.event_date)),
+  );
+  protected readonly tonightEvent = computed(() => getCurrentClubEvent(this.clubEvents(), this.currentTime()));
   protected readonly clubDataStatus = signal<ClubDataStatus>('idle');
   protected readonly adminOpen = signal(false);
   protected readonly adminUser = signal<User | null>(null);
@@ -318,10 +349,26 @@ export class App implements OnDestroy {
   private compactLayout = false;
   private partyNightInterval?: ReturnType<typeof setInterval>;
   private readonly refreshPartyNight = () => {
-    this.partyNight.set(getPartyNight(new Date()));
-    const calendarDate = berlinCalendarDate(new Date());
-    if (calendarDate !== this.currentCalendarDate()) {
+    const now = new Date();
+    const previousEventId = this.tonightEvent()?.id ?? null;
+    this.currentTime.set(now);
+    this.partyNight.set(getPartyNight(now));
+    this.refreshActiveClubIcons();
+    const calendarDate = berlinCalendarDate(now);
+    const dateChanged = calendarDate !== this.currentCalendarDate();
+    if (dateChanged) {
       this.currentCalendarDate.set(calendarDate);
+      this.clubsWithEventsToday.set(new Set());
+      this.refreshClubIcons();
+      void this.loadTodayEventClubs();
+      const club = this.selectedClub();
+      if (club) {
+        this.clubMetrics.set(null);
+        this.clubReports.set([]);
+        void this.loadClubData(club);
+      }
+    }
+    if (!dateChanged && previousEventId !== (this.tonightEvent()?.id ?? null)) {
       this.clubsWithEventsToday.set(new Set());
       this.refreshClubIcons();
       void this.loadTodayEventClubs();
@@ -768,12 +815,27 @@ export class App implements OnDestroy {
     }
   }
 
-  protected async saveEvent(clubSlug: string, eventDate: string, description: string, djs: string): Promise<void> {
+  protected async saveEvent(
+    clubSlug: string,
+    eventDate: string,
+    eventTime: string,
+    eventEndDate: string,
+    eventEndTime: string,
+    description: string,
+    djs: string,
+  ): Promise<void> {
     this.adminNotice.set(null);
     if (!clubSlug || !description.trim()
+      || !eventDate || !eventTime || !eventEndDate || !eventEndTime
       || eventDate < berlinCalendarDate(new Date())
-      || eventDate > berlinCalendarDate(new Date(), MAX_UPCOMING_EVENT_DAYS)) {
-      this.adminError.set(`Choose a club, add event details, and use a date within the next ${MAX_UPCOMING_EVENT_DAYS} days.`);
+      || eventDate > berlinCalendarDate(new Date(), MAX_UPCOMING_EVENT_DAYS)
+      || `${eventEndDate}T${eventEndTime}` <= `${eventDate}T${eventTime}`
+      || eventEndDate > berlinCalendarDate(new Date(), MAX_UPCOMING_EVENT_DAYS + 2)
+      || Date.parse(`${eventEndDate}T00:00:00Z`) - Date.parse(`${eventDate}T00:00:00Z`) > 2 * 86_400_000
+      || (Date.parse(`${eventEndDate}T00:00:00Z`) - Date.parse(`${eventDate}T00:00:00Z`) > 86_400_000
+        && (new Date(`${eventDate}T00:00:00Z`).getUTCDay() !== 6 || eventEndTime > '06:00'))
+      || (eventEndDate > eventDate && new Date(`${eventEndDate}T00:00:00Z`).getUTCDay() === 1 && eventEndTime > '06:00')) {
+      this.adminError.set(`Choose valid event start and end times within the next ${MAX_UPCOMING_EVENT_DAYS} days.`);
       return;
     }
     this.adminBusy.set(true);
@@ -783,6 +845,9 @@ export class App implements OnDestroy {
       await this.supabase.saveEvent({
         club_slug: clubSlug,
         event_date: eventDate,
+        event_time: eventTime,
+        event_end_date: eventEndDate,
+        event_end_time: eventEndTime,
         description: description.trim(),
         djs: djs.trim() || null,
       });
@@ -939,13 +1004,13 @@ export class App implements OnDestroy {
     return details.join(' · ');
   }
 
-  protected formatEventDate(date: string): string {
+  protected formatEventDate(date: string, time?: string): string {
     return new Intl.DateTimeFormat('en-GB', {
       timeZone: 'Europe/Berlin',
       weekday: 'short',
       day: 'numeric',
       month: 'short',
-    }).format(new Date(`${date}T12:00:00Z`));
+    }).format(new Date(`${date}T12:00:00Z`)) + (time ? ` ${time.slice(0, 5)}` : '');
   }
 
   protected adminClubName(slug: string): string {
@@ -958,6 +1023,10 @@ export class App implements OnDestroy {
 
   protected eventDateMaximum(): string {
     return berlinCalendarDate(new Date(), MAX_UPCOMING_EVENT_DAYS);
+  }
+
+  protected eventEndDateMaximum(): string {
+    return berlinCalendarDate(new Date(), MAX_UPCOMING_EVENT_DAYS + 2);
   }
 
   protected metricCaption(): string {
@@ -1063,16 +1132,31 @@ export class App implements OnDestroy {
     if (!this.backendConfigured) {
       return;
     }
-    const eventDate = this.currentCalendarDate();
+    const now = this.currentTime();
+    const eventDate = berlinCalendarDate(now);
     try {
-      const clubsWithEvents = await this.supabase.loadClubSlugsWithEventsOn(eventDate);
-      if (this.currentCalendarDate() !== eventDate) {
+      const eventIntervals = await this.supabase.loadEventsOverlappingDate(eventDate);
+      if (berlinCalendarDate(this.currentTime()) !== eventDate) {
         return;
       }
-      this.clubsWithEventsToday.set(new Set(clubsWithEvents));
-      this.refreshClubIcons();
+      this.eventIntervalsToday.set(eventIntervals);
+      this.refreshActiveClubIcons();
     } catch (error) {
-      console.error(`Unable to load clubs with events on ${eventDate}.`, error);
+      console.error(`Unable to load event intervals overlapping ${eventDate}.`, error);
+    }
+  }
+
+  private refreshActiveClubIcons(): void {
+    const activeClubs = new Set(
+      this.eventIntervalsToday()
+        .filter((event) => isClubEventActive(event, this.currentTime()))
+        .map((event) => event.club_slug),
+    );
+    const currentClubs = this.clubsWithEventsToday();
+    if (activeClubs.size !== currentClubs.size
+      || [...activeClubs].some((clubSlug) => !currentClubs.has(clubSlug))) {
+      this.clubsWithEventsToday.set(activeClubs);
+      this.refreshClubIcons();
     }
   }
 
@@ -1133,15 +1217,17 @@ export class App implements OnDestroy {
         return;
       }
       this.clubEvents.set(events);
-      const currentEvent = events.find((event) => event.event_date === eventDate);
+      const currentEvent = getCurrentClubEvent(events, this.currentTime());
       const reports = currentEvent
         ? await this.supabase.loadClubReports(club.id, currentEvent.id)
         : [];
-      if (this.selectedClub()?.id !== club.id || this.currentCalendarDate() !== eventDate) {
+      if (this.selectedClub()?.id !== club.id
+        || this.currentCalendarDate() !== eventDate
+        || (getCurrentClubEvent(events, this.currentTime())?.id ?? null) !== (currentEvent?.id ?? null)) {
         return;
       }
       this.clubReports.set(reports);
-      this.clubMetrics.set(calculateClubMetrics(reports, new Date()));
+      this.clubMetrics.set(calculateClubMetrics(reports, new Date(), currentEvent?.id));
       this.clubDataStatus.set('ready');
     } catch (error) {
       console.error(`Unable to load public data for ${club.name}.`, error);

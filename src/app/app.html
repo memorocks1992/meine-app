@@ -61,9 +61,12 @@
         } @else if (adminTab() === 'events') {
           <section class="admin-workspace" aria-label="Manage events">
             <div class="admin-workspace-heading"><div><p class="eyebrow">UPCOMING PROGRAMME</p><h3>Add or update an event</h3></div></div>
-            <form class="admin-form admin-event-form" (submit)="$event.preventDefault(); saveEvent(eventClub.value, eventDate.value, eventDescription.value, eventDjs.value)">
+            <form class="admin-form admin-event-form" (submit)="$event.preventDefault(); saveEvent(eventClub.value, eventDate.value, eventTime.value, eventEndDate.value, eventEndTime.value, eventDescription.value, eventDjs.value)">
               <label><span>Club</span><select #eventClub required><option value="">Choose a club</option>@for (club of activeAdminClubs(); track club.slug) { <option [value]="club.slug">{{ club.name }}</option> }</select></label>
-              <label><span>Date</span><input #eventDate type="date" [min]="eventDateMinimum()" [max]="eventDateMaximum()" required /></label>
+              <label><span>From · date</span><input #eventDate type="date" [min]="eventDateMinimum()" [max]="eventDateMaximum()" required /></label>
+              <label><span>From · time</span><input #eventTime type="time" required /></label>
+              <label><span>Until · date</span><input #eventEndDate type="date" [min]="eventDateMinimum()" [max]="eventEndDateMaximum()" required /></label>
+              <label><span>Until · time</span><input #eventEndTime type="time" required /></label>
               <label class="admin-event-description"><span>Event details</span><input #eventDescription maxlength="160" required placeholder="Event or lineup" /></label>
               <label class="admin-event-djs"><span>DJs</span><input #eventDjs maxlength="1000" placeholder="DJ names" /></label>
               <button type="submit" class="admin-submit" [disabled]="adminBusy()">{{ adminBusy() ? 'Saving…' : 'Save event' }}</button>
@@ -71,7 +74,7 @@
             <div class="admin-list">
               @for (event of adminEvents(); track event.id) {
                 <article class="admin-list-item">
-                  <div class="admin-list-copy"><strong>{{ event.description }}</strong><span>{{ adminClubName(event.club_slug) }} · {{ formatEventDate(event.event_date) }}@if (event.djs) { · DJs: {{ event.djs }} }</span></div>
+                  <div class="admin-list-copy"><strong>{{ event.description }}</strong><span>{{ adminClubName(event.club_slug) }} · {{ formatEventDate(event.event_date, event.event_time) }}–{{ formatEventDate(event.event_end_date, event.event_end_time) }}@if (event.djs) { · DJs: {{ event.djs }} }</span></div>
                   <button type="button" class="secondary-action" [disabled]="adminBusy()" (click)="deleteEvent(event)">Delete</button>
                 </article>
               } @empty { <p class="admin-empty">No events scheduled.</p> }
@@ -184,7 +187,6 @@
       <div class="map-frame">
         <div #mapElement class="berlin-map" role="application" aria-label="Interactive map of Berlin clubs"></div>
         <div class="map-caption">
-          <span class="map-dot" aria-hidden="true"></span>
           Club locations · OpenStreetMap
         </div>
       </div>
@@ -315,9 +317,9 @@
                 @else if (clubDataStatus() === 'error') { Events could not be loaded. Please try again later. }
                 @else if (clubEvents().length === 0) { No upcoming events listed. }
                 @else {
-                  @for (event of clubEvents(); track event.id) {
+                  @for (event of upcomingClubEvents(); track event.id) {
                     <p class="event-item">
-                      <strong>{{ formatEventDate(event.event_date) }}</strong> · {{ event.description }}
+                      <strong>{{ formatEventDate(event.event_date, event.event_time) }}–{{ formatEventDate(event.event_end_date, event.event_end_time) }}</strong> · {{ event.description }}
                       @if (event.djs) { <span class="event-djs"> · DJs: {{ event.djs }}</span> }
                     </p>
                   }

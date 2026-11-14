@@ -82,14 +82,6 @@ app-root {
   font-size: 12px;
 }
 
-.map-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #e8ad64;
-  box-shadow: 0 0 12px rgb(232 173 100 / 50%);
-}
-
 .admin-panel {
   position: relative;
   z-index: 1050;
@@ -445,11 +437,6 @@ main {
   color: #d8d2df;
   font-size: 11px;
   pointer-events: none;
-}
-
-.map-dot {
-  background: var(--purple);
-  box-shadow: 0 0 10px rgb(188 135 255 / 65%);
 }
 
 .data-note {
