@@ -319,7 +319,7 @@
                 @else {
                   @for (event of upcomingClubEvents(); track event.id) {
                     <p class="event-item">
-                      <strong>{{ formatEventDate(event.event_date, event.event_time) }}–{{ formatEventDate(event.event_end_date, event.event_end_time) }}</strong> · {{ event.description }}
+                      <strong>{{ formatEventDate(event.event_date, event.event_time) }}</strong> · {{ event.description }}
                       @if (event.djs) { <span class="event-djs"> · DJs: {{ event.djs }}</span> }
                     </p>
                   }
