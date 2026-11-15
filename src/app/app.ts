@@ -70,6 +70,7 @@ export interface ClubMetrics {
   entryChance: number | null;
   mood: number | null;
   entryRange: string | null;
+  latestReportAt: string | null;
   count: number;
   source: 'live' | 'none';
 }
@@ -200,12 +201,16 @@ export function calculateClubMetrics(reports: PublicReport[], now: Date, eventId
 
   const entryRange = [...priceCounts.entries()]
     .sort((left, right) => right[1] - left[1])[0]?.[0] ?? null;
+  const latestReportAt = liveReports.reduce<string | null>((latest, report) =>
+    !latest || Date.parse(report.created_at) > Date.parse(latest) ? report.created_at : latest,
+  null);
 
   return {
     waitMinutes: average(liveReports.map((report) => report.wait_minutes)),
     entryChance: average(liveReports.map((report) => report.entry_chance)),
     mood: average(liveReports.map((report) => report.mood)),
     entryRange,
+    latestReportAt,
     count: liveReports.length,
     source,
   };

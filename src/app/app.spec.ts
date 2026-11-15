@@ -180,6 +180,7 @@ describe('App', () => {
       entryChance: 7,
       mood: 7,
       entryRange: '€15–20',
+      latestReportAt: '2026-11-10T20:30:00+01:00',
       count: 2,
       source: 'live',
     });
@@ -198,6 +199,7 @@ describe('App', () => {
       entryChance: 7,
       mood: 7,
       entryRange: '€15–20',
+      latestReportAt: '2026-11-15T20:30:00+01:00',
       count: 2,
       source: 'live',
     });
@@ -215,6 +217,7 @@ describe('App', () => {
       entryChance: null,
       mood: null,
       entryRange: null,
+      latestReportAt: null,
       count: 0,
       source: 'none',
     });
