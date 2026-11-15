@@ -31,6 +31,7 @@ interface ReportDraft {
 type ClubDataStatus = 'idle' | 'loading' | 'ready' | 'error' | 'unconfigured';
 
 const MAX_UPCOMING_EVENT_DAYS = 100;
+const WAIT_REPORT_FRESHNESS_MS = 60 * 60 * 1000;
 
 const CLUB_WEBSITE_URLS: Readonly<Record<string, string>> = {
   berghain: 'https://www.berghain.berlin/',
@@ -70,7 +71,8 @@ export interface ClubMetrics {
   entryChance: number | null;
   mood: number | null;
   entryRange: string | null;
-  latestReportAt: string | null;
+  latestWaitReportAt: string | null;
+  latestWaitMinutes: number | null;
   count: number;
   source: 'live' | 'none';
 }
@@ -201,16 +203,21 @@ export function calculateClubMetrics(reports: PublicReport[], now: Date, eventId
 
   const entryRange = [...priceCounts.entries()]
     .sort((left, right) => right[1] - left[1])[0]?.[0] ?? null;
-  const latestReportAt = liveReports.reduce<string | null>((latest, report) =>
-    !latest || Date.parse(report.created_at) > Date.parse(latest) ? report.created_at : latest,
+  const waitReports = liveReports.filter((report) => report.wait_minutes !== null);
+  const recentWaitReports = waitReports.filter((report) =>
+    now.getTime() - Date.parse(report.created_at) <= WAIT_REPORT_FRESHNESS_MS,
+  );
+  const latestWaitReport = waitReports.reduce<PublicReport | null>((latest, report) =>
+    !latest || Date.parse(report.created_at) > Date.parse(latest.created_at) ? report : latest,
   null);
 
   return {
-    waitMinutes: average(liveReports.map((report) => report.wait_minutes)),
+    waitMinutes: average(recentWaitReports.map((report) => report.wait_minutes)),
     entryChance: average(liveReports.map((report) => report.entry_chance)),
     mood: average(liveReports.map((report) => report.mood)),
     entryRange,
-    latestReportAt,
+    latestWaitReportAt: latestWaitReport?.created_at ?? null,
+    latestWaitMinutes: latestWaitReport?.wait_minutes ?? null,
     count: liveReports.length,
     source,
   };

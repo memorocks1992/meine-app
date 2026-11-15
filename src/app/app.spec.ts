@@ -167,7 +167,7 @@ describe('App', () => {
     expect(getForumPolicyNotice('', 'Have a nice evening')).toBeNull();
   });
 
-  it('should average every report for the current event day', () => {
+  it('should average recent wait reports while averaging other metrics for the event day', () => {
     const now = new Date('2026-11-10T21:00:00+01:00');
     const reports: PublicReport[] = [
       { id: '1', club_slug: 'berghain', event_id: 'event-1', wait_minutes: 20, entry_chance: 6, mood: 8, entry_range: '€15–20', created_at: '2026-11-10T20:30:00+01:00' },
@@ -176,11 +176,12 @@ describe('App', () => {
     ];
 
     expect(calculateClubMetrics(reports, now)).toEqual({
-      waitMinutes: 30,
+      waitMinutes: 20,
       entryChance: 7,
       mood: 7,
       entryRange: '€15–20',
-      latestReportAt: '2026-11-10T20:30:00+01:00',
+      latestWaitReportAt: '2026-11-10T20:30:00+01:00',
+      latestWaitMinutes: 20,
       count: 2,
       source: 'live',
     });
@@ -195,11 +196,12 @@ describe('App', () => {
     ];
 
     expect(calculateClubMetrics(reports, now, 'weekend-event')).toEqual({
-      waitMinutes: 30,
+      waitMinutes: 40,
       entryChance: 7,
       mood: 7,
       entryRange: '€15–20',
-      latestReportAt: '2026-11-15T20:30:00+01:00',
+      latestWaitReportAt: '2026-11-15T20:30:00+01:00',
+      latestWaitMinutes: 40,
       count: 2,
       source: 'live',
     });
@@ -217,9 +219,40 @@ describe('App', () => {
       entryChance: null,
       mood: null,
       entryRange: null,
-      latestReportAt: null,
+      latestWaitReportAt: null,
+      latestWaitMinutes: null,
       count: 0,
       source: 'none',
+    });
+  });
+
+  it('should average only wait reports from the last hour and retain the latest report', () => {
+    const now = new Date('2026-11-10T21:00:00+01:00');
+    const reports: PublicReport[] = [
+      { id: '1', club_slug: 'berghain', event_id: 'event-1', wait_minutes: 10, entry_chance: 6, mood: 8, entry_range: '€15–20', created_at: '2026-11-10T19:59:00+01:00' },
+      { id: '2', club_slug: 'berghain', event_id: 'event-1', wait_minutes: 30, entry_chance: 8, mood: 6, entry_range: '€15–20', created_at: '2026-11-10T20:00:00+01:00' },
+      { id: '3', club_slug: 'berghain', event_id: 'event-1', wait_minutes: 70, entry_chance: 8, mood: 6, entry_range: '€15–20', created_at: '2026-11-10T20:01:00+01:00' },
+    ];
+
+    expect(calculateClubMetrics(reports, now, 'event-1')).toMatchObject({
+      waitMinutes: 50,
+      latestWaitReportAt: '2026-11-10T20:01:00+01:00',
+      latestWaitMinutes: 70,
+    });
+  });
+
+  it('should not show a stale wait average when there are no reports in the last hour', () => {
+    const now = new Date('2026-11-10T21:00:00+01:00');
+    const reports: PublicReport[] = [
+      { id: '1', club_slug: 'berghain', event_id: 'event-1', wait_minutes: 45, entry_chance: 6, mood: 8, entry_range: '€15–20', created_at: '2026-11-10T19:30:00+01:00' },
+    ];
+
+    expect(calculateClubMetrics(reports, now, 'event-1')).toMatchObject({
+      waitMinutes: null,
+      latestWaitReportAt: '2026-11-10T19:30:00+01:00',
+      latestWaitMinutes: 45,
+      count: 1,
+      source: 'live',
     });
   });
 });

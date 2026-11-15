@@ -221,9 +221,9 @@
             <div class="wait-value">
               <span class="eyebrow"><svg class="summary-label-icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.25" /><path d="M8 4.5V8l2.25 1.5" /></svg>WAIT TIME</span>
               <strong>{{ clubMetrics()?.waitMinutes ?? '–' }} <small>min</small></strong>
-              <span class="metric-note">{{ metricCaption() }}</span>
-              @if (clubMetrics()?.latestReportAt; as latestReportAt) {
-                <span class="metric-note"><strong>Last report: {{ formatReportTime(latestReportAt) }} ({{ formatTimeAgo(latestReportAt) }})</strong></span>
+              <span class="metric-note">{{ clubMetrics() && clubMetrics()?.waitMinutes === null ? 'No recent wait-time reports' : metricCaption() }}</span>
+              @if (clubMetrics()?.latestWaitReportAt; as latestWaitReportAt) {
+                <span class="metric-note"><strong>Last report: {{ clubMetrics()?.latestWaitMinutes }} min · {{ formatReportTime(latestWaitReportAt) }} ({{ formatTimeAgo(latestWaitReportAt) }})</strong></span>
               }
             </div>
             <div class="event-value">
