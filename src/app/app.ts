@@ -1,5 +1,6 @@
 import { afterNextRender, Component, computed, ElementRef, OnDestroy, PLATFORM_ID, signal, ViewChild, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { environment } from '../environments/environment';
 import { SupabaseService } from './supabase.service';
 import type { AdminReport, ClubEvent, ForumComment, ForumPost, ForumReport, LiveUpdate, ManagedClub, NewReport, PublicReport } from './supabase.service';
 import type { User } from '@supabase/supabase-js';
@@ -405,6 +406,7 @@ export class App implements OnDestroy {
 
   constructor() {
     this.backendConfigured = this.supabase.isConfigured;
+    this.setupUmami();
     afterNextRender(() => {
       this.partyNightInterval = setInterval(this.refreshPartyNight, 30_000);
       window.addEventListener('focus', this.refreshPartyNight);
@@ -415,6 +417,33 @@ export class App implements OnDestroy {
       void this.loadTodayEventClubs();
       void this.initializeMap();
     });
+  }
+
+  private setupUmami(): void {
+    if (!isPlatformBrowser(this.platformId) || !environment.umamiWebsiteId) {
+      return;
+    }
+    const hostname = window.location.hostname.toLowerCase();
+    const browserNavigator = navigator as Navigator & { msDoNotTrack?: string };
+    if (
+      hostname === 'localhost'
+      || hostname === '127.0.0.1'
+      || hostname === '0.0.0.0'
+      || hostname.endsWith('.local')
+      || browserNavigator.doNotTrack === '1'
+      || browserNavigator.msDoNotTrack === '1'
+    ) {
+      return;
+    }
+    if (document.querySelector('script[data-umami="true"]')) {
+      return;
+    }
+    const script = document.createElement('script');
+    script.defer = true;
+    script.src = 'https://cloud.umami.is/script.js';
+    script.dataset['websiteId'] = environment.umamiWebsiteId;
+    script.dataset['umami'] = 'true';
+    document.head.appendChild(script);
   }
 
   ngOnDestroy(): void {
