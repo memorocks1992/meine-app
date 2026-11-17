@@ -287,7 +287,24 @@
                 <span aria-hidden="true">↗</span> Club Website
               </a>
             }
+            <button type="button" class="maps-link address-toggle" (click)="toggleAddress()" [attr.aria-expanded]="addressOpen()" aria-controls="club-address">
+              <span aria-hidden="true">⌖</span> Club Address
+            </button>
           </div>
+          @if (addressOpen()) {
+            <div class="club-address" id="club-address">
+              <div>
+                <span class="eyebrow">CLUB ADDRESS</span>
+                <p>{{ club.address }}</p>
+                <span class="metric-note">Please verify the address with the club before travelling.</span>
+              </div>
+              <button type="button" class="maps-link address-copy" [disabled]="addressCopyStatus() === 'copying'" (click)="copyClubAddress(club)">Copy address</button>
+              <p class="address-copy-status" role="status" aria-live="polite">
+                @if (addressCopyStatus() === 'success') { Address copied. }
+                @else if (addressCopyStatus() === 'error') { Could not copy the address. Please select and copy it manually. }
+              </p>
+            </div>
+          }
 
           <div class="detail-actions">
             <button type="button" class="secondary-action" (click)="historyOpen.update(open => !open)" [attr.aria-expanded]="historyOpen()">
@@ -559,7 +576,7 @@
         <p>By submitting a report or post, you are responsible for ensuring that it is lawful and does not infringe anyone else's rights. Do not publish insults, threats, unlawful content, spam, confidential information or content for which you do not have the necessary rights. Avoid using your real name. Other people may read, copy or share content outside this website.</p>
         <p>Reports and posts are submitted by users and are not checked for accuracy before publication. Use the report button or contact us at the address above if content is unlawful or infringes rights. We will review specific notices and may remove content or restrict access to it. Automatic deletion of forum posts after 24 hours does not prevent you from requesting earlier removal.</p>
         <h2>Accuracy and liability</h2>
-        <p>Information about clubs, events, waiting times, likelihood of entry and prices is provided for general guidance only. It may be incomplete, subjective, out of date or inaccurate and is not an assurance by the relevant club. For important matters, verify the information directly with the venue. Queue Berlin does not guarantee uninterrupted availability or the accuracy of user-submitted content.</p>
+        <p>Information about clubs, events, waiting times, likelihood of entry and prices is provided for general guidance only. Community reports reflect personal impressions and are not predictions. Information may be incomplete, subjective, out of date or inaccurate and is not an assurance by the relevant club. For important matters, verify the information directly with the venue. Queue Berlin does not guarantee uninterrupted availability or the accuracy of user-submitted content.</p>
         <p>To the extent permitted by law, the operator excludes liability for damage caused by ordinary negligence in relation to non-essential obligations. For ordinary negligence in relation to essential contractual obligations, liability is limited to foreseeable damage typical for the contract. This does not affect unlimited liability for intent or gross negligence, injury to life, body or health, expressly assumed guarantees, liability under the Product Liability Act or any other mandatory statutory liability. This is not a blanket exclusion of liability for user content or all damages.</p>
       </div>
     </details>

@@ -23,6 +23,8 @@ Reports are tied to the active club event, and its reports are removed shortly a
 
 The Süß war gestern and OXI programme is a manually researched snapshot as of 17 November 2026, not an automatic import. Sources are listed in the [event migration](./supabase/migrations/20261117150000_suess_oxi_events.sql); listings can change and not all future events may have been published. Review the programme and estimated end times in the admin dashboard.
 
+Club addresses can be displayed and copied from the club details. The [address migration](./supabase/migrations/20261117160000_verified_club_addresses.sql) records the club-site sources checked on 17 November 2026 and updates only unchanged seed addresses; review admin-edited and unverified addresses separately. A club's imprint may list its operator's address rather than its entrance, so confirm locations before travel.
+
 The public report flow and admin authentication are wired to these tables. After an admin signs in, the dashboard can add/edit clubs, hide or publish them, schedule events, publish or remove live updates, and remove visitor reports. Hiding a club preserves its events. Until the Supabase project is configured, submission and sign-in stay disabled rather than pretending data was saved.
 
 ## Development server

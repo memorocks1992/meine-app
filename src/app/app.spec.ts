@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { vi } from 'vitest';
 import { App, calculateClubMetrics, getCurrentClubEvent, getForumPolicyNotice, getPartyNight, getReportEventNotice, isValidEventInterval } from './app';
 import type { PublicReport } from './supabase.service';
 
@@ -90,6 +91,72 @@ describe('App', () => {
     fixture.detectChanges();
 
     expect(compiled.querySelector('.community-notice')).toBeNull();
+  });
+
+  it('reveals and copies the selected club address', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    const originalClipboard = Object.getOwnPropertyDescriptor(navigator, 'clipboard');
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } });
+    try {
+      const fixture = TestBed.createComponent(App);
+      fixture.componentInstance['selectedClub'].set({
+        id: 'berghain', name: 'Berghain', district: 'Friedrichshain',
+        address: 'Am Wriezener Bahnhof, 10243 Berlin', latitude: 52.5112, longitude: 13.4437, color: '#fb7185',
+      });
+      fixture.detectChanges();
+      const element = fixture.nativeElement as HTMLElement;
+      const toggle = element.querySelector<HTMLButtonElement>('.address-toggle')!;
+      expect(toggle.getAttribute('aria-expanded')).toBe('false');
+      expect(element.querySelector('.club-address')).toBeNull();
+
+      toggle.click();
+      fixture.detectChanges();
+      expect(toggle.getAttribute('aria-expanded')).toBe('true');
+      expect(element.querySelector('.club-address')?.textContent).toContain('Am Wriezener Bahnhof, 10243 Berlin');
+      element.querySelector<HTMLButtonElement>('.address-copy')!.click();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      expect(writeText).toHaveBeenCalledWith('Am Wriezener Bahnhof, 10243 Berlin');
+      expect(element.querySelector('.address-copy-status')?.textContent).toContain('Address copied.');
+
+      toggle.click();
+      fixture.detectChanges();
+      expect(element.querySelector('.club-address')).toBeNull();
+      fixture.destroy();
+    } finally {
+      if (originalClipboard) {
+        Object.defineProperty(navigator, 'clipboard', originalClipboard);
+      } else {
+        Reflect.deleteProperty(navigator, 'clipboard');
+      }
+    }
+  });
+
+  it('shows a manual-copy instruction if clipboard access fails', async () => {
+    const originalClipboard = Object.getOwnPropertyDescriptor(navigator, 'clipboard');
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: vi.fn().mockRejectedValue(new Error('Denied')) } });
+    try {
+      const fixture = TestBed.createComponent(App);
+      fixture.componentInstance['selectedClub'].set({
+        id: 'berghain', name: 'Berghain', district: 'Friedrichshain',
+        address: 'Am Wriezener Bahnhof, 10243 Berlin', latitude: 52.5112, longitude: 13.4437, color: '#fb7185',
+      });
+      fixture.detectChanges();
+      const element = fixture.nativeElement as HTMLElement;
+      element.querySelector<HTMLButtonElement>('.address-toggle')!.click();
+      fixture.detectChanges();
+      element.querySelector<HTMLButtonElement>('.address-copy')!.click();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      expect(element.querySelector('.address-copy-status')?.textContent).toContain('select and copy it manually');
+      fixture.destroy();
+    } finally {
+      if (originalClipboard) {
+        Object.defineProperty(navigator, 'clipboard', originalClipboard);
+      } else {
+        Reflect.deleteProperty(navigator, 'clipboard');
+      }
+    }
   });
 
   it('should link to the Queue Berlin Instagram account from the footer', async () => {
