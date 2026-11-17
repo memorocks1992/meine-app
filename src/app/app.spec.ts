@@ -21,7 +21,7 @@ describe('App', () => {
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('.brand-name')?.textContent).toContain('QUEUE BERLIN');
-    expect(compiled.querySelector('#map-title')?.textContent).toContain("Where's the party?");
+    expect(compiled.querySelector('#map-title')?.textContent).toContain('Berlin is calling. Where to?');
   });
 
   it('should leave the header right side empty', async () => {
