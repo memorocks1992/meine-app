@@ -19,9 +19,11 @@ A responsive web prototype for Berlin's club scene. The map shows the initial cl
 
 The report cooldown uses a random browser ID stored in local storage and is enforced by the database per club for 10 minutes. It is not a substitute for stronger abuse prevention (for example, CAPTCHA or server-side IP throttling) before a public launch. The initial club coordinates and addresses still need verification.
 
-Reports are tied to the club event scheduled for that Berlin calendar date. All reports for that event contribute to its displayed averages; the database removes reports from previous dates shortly after midnight Berlin time. Schedule each date separately for events spanning multiple calendar days.
+Reports are tied to the active club event, and its reports are removed shortly after that event ends. Events starting on 31 December may run for up to 72 hours; other events retain the existing weekend limits. Multiple listings for one club and date share one event interval, which can include gaps between listings. Where a published end time is unavailable, the programme marks the end as estimated; reports can be submitted until that estimate even if the club closes earlier.
 
-The public report flow and admin authentication are wired to these tables. After an admin signs in, the dashboard can add/edit clubs, hide or publish them, schedule events, publish or remove live updates, and remove visitor reports. Hiding a club preserves its events, while reports expire after their event date. Until the Supabase project is configured, submission and sign-in stay disabled rather than pretending data was saved.
+The Süß war gestern and OXI programme is a manually researched snapshot as of 17 November 2026, not an automatic import. Sources are listed in the [event migration](./supabase/migrations/20261117150000_suess_oxi_events.sql); listings can change and not all future events may have been published. Review the programme and estimated end times in the admin dashboard.
+
+The public report flow and admin authentication are wired to these tables. After an admin signs in, the dashboard can add/edit clubs, hide or publish them, schedule events, publish or remove live updates, and remove visitor reports. Hiding a club preserves its events. Until the Supabase project is configured, submission and sign-in stay disabled rather than pretending data was saved.
 
 ## Development server
 

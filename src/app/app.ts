@@ -2,6 +2,7 @@ import { afterNextRender, Component, computed, ElementRef, OnDestroy, PLATFORM_I
 import { isPlatformBrowser } from '@angular/common';
 import { environment } from '../environments/environment';
 import { SupabaseService } from './supabase.service';
+import { layoutMapLabels } from './map-label-layout';
 import type { AdminReport, ClubEvent, ForumComment, ForumPost, ForumReport, LiveUpdate, ManagedClub, NewReport, PublicReport } from './supabase.service';
 import type { User } from '@supabase/supabase-js';
 import type * as Leaflet from 'leaflet';
@@ -1333,7 +1334,13 @@ export class App implements OnDestroy {
     }).addTo(this.map);
 
     window.addEventListener('resize', this.handleResize);
+    this.map.on('moveend zoomend', this.layoutClubLabels);
     this.refreshClubIcons();
+    if (document.fonts) {
+      void document.fonts.ready.then(() => {
+        if (!this.destroyed) this.layoutClubLabels();
+      });
+    }
   }
 
   private createClubIcon(
@@ -1440,6 +1447,47 @@ export class App implements OnDestroy {
         this.markers.set(club.id, newMarker);
       }
     }
+    this.layoutClubLabels();
   }
 
+  private readonly layoutClubLabels = (): void => {
+    if (!this.map) return;
+    const map = this.map;
+    const size = map.getSize();
+    const labels = this.clubs().flatMap((club) => {
+      const marker = this.markers.get(club.id);
+      const element = marker?.getElement()?.querySelector<HTMLElement>('.club-map-label');
+      if (!marker || !element) return [];
+      const point = map.latLngToContainerPoint(marker.getLatLng());
+      const [preferredX, preferredY] = this.compactLayout
+        ? this.compactLabelOffsets.get(club.id) ?? [0, 0]
+        : this.labelOffsets.get(club.id) ?? [0, 0];
+      return [{
+        id: club.id,
+        x: point.x,
+        y: point.y,
+        width: element.offsetWidth,
+        height: element.offsetHeight,
+        preferredX,
+        preferredY,
+        selected: club.id === this.selectedClub()?.id,
+      }];
+    });
+    const positions = layoutMapLabels(labels, size.x, size.y);
+    for (const label of labels) {
+      const marker = this.markers.get(label.id);
+      const element = marker?.getElement()?.querySelector<HTMLElement>('.club-map-label');
+      const line = marker?.getElement()?.querySelector<SVGLineElement>('.club-map-connector line');
+      if (!element || !line) continue;
+      const position = positions.get(label.id);
+      element.style.visibility = position ? '' : 'hidden';
+      line.style.visibility = position ? '' : 'hidden';
+      if (position) {
+        element.style.setProperty('--label-x', `${position[0]}px`);
+        element.style.setProperty('--label-y', `${position[1]}px`);
+        line.setAttribute('x2', String(200 + position[0]));
+        line.setAttribute('y2', String(200 + position[1]));
+      }
+    }
+  };
 }
