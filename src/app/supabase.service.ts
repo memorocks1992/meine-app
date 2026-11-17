@@ -32,7 +32,6 @@ export interface ClubEvent {
   event_end_time: string;
   description: string;
   djs: string | null;
-  import_end_estimated?: boolean;
 }
 
 export interface ManagedClub {
@@ -134,7 +133,7 @@ export class SupabaseService {
     const client = await this.requireClient();
     const { data, error } = await client
       .from('events')
-      .select('id, club_slug, event_date, event_time, event_end_date, event_end_time, description, djs, import_end_estimated')
+      .select('id, club_slug, event_date, event_time, event_end_date, event_end_time, description, djs')
       .eq('club_slug', clubSlug)
       .order('event_date', { ascending: true });
 
@@ -149,7 +148,7 @@ export class SupabaseService {
     const client = await this.requireClient();
     const { data, error } = await client
       .from('events')
-      .select('id, club_slug, event_date, event_time, event_end_date, event_end_time, description, djs, import_end_estimated')
+      .select('id, club_slug, event_date, event_time, event_end_date, event_end_time, description, djs')
       .lte('event_date', eventDate)
       .gte('event_end_date', eventDate)
       .limit(1000);
@@ -208,7 +207,7 @@ export class SupabaseService {
     const client = await this.requireClient();
     const { data, error } = await client
       .from('events')
-      .select('id, club_slug, event_date, event_time, event_end_date, event_end_time, description, djs, import_end_estimated')
+      .select('id, club_slug, event_date, event_time, event_end_date, event_end_time, description, djs')
       .order('event_date', { ascending: true })
       .limit(100);
     if (error) {
