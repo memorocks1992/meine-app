@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { App, calculateClubMetrics, getCurrentClubEvent, getForumPolicyNotice, getPartyNight, getReportEventNotice } from './app';
+import { App, calculateClubMetrics, getCurrentClubEvent, getForumPolicyNotice, getPartyNight, getReportEventNotice, isValidEventInterval } from './app';
 import type { PublicReport } from './supabase.service';
 
 describe('App', () => {
@@ -14,6 +14,16 @@ describe('App', () => {
     const fixture = TestBed.createComponent(App);
     const app = fixture.componentInstance;
     expect(app).toBeTruthy();
+  });
+
+  it('allows events starting on New Year’s Eve to last up to 72 hours', () => {
+    expect(isValidEventInterval('2026-12-31', '22:00', '2027-01-03', '10:00')).toBe(true);
+    expect(isValidEventInterval('2026-12-31', '22:00', '2027-01-03', '22:00')).toBe(true);
+    expect(isValidEventInterval('2026-12-31', '22:00', '2027-01-03', '22:01')).toBe(false);
+    expect(isValidEventInterval('2026-12-30', '22:00', '2027-01-02', '10:00')).toBe(false);
+    expect(isValidEventInterval('2026-11-14', '22:00', '2026-11-16', '06:00')).toBe(true);
+    expect(isValidEventInterval('2026-11-14', '22:00', '2026-11-16', '06:01')).toBe(false);
+    expect(isValidEventInterval('2026-12-31', '22:00', '2026-12-31', '21:00')).toBe(false);
   });
 
   it('should render the Queue Berlin brand in English', async () => {

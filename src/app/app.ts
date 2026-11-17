@@ -157,6 +157,22 @@ export function getCurrentClubEvent(events: ClubEvent[], now: Date): ClubEvent |
     )[0] ?? null;
 }
 
+export function isValidEventInterval(startDate: string, startTime: string, endDate: string, endTime: string): boolean {
+  const start = Date.parse(`${startDate}T${startTime}:00Z`);
+  const end = Date.parse(`${endDate}T${endTime}:00Z`);
+  if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) {
+    return false;
+  }
+  if (startDate.endsWith('-12-31')) {
+    return end - start <= 72 * 60 * 60 * 1000;
+  }
+  const dateDifference = Date.parse(`${endDate}T00:00:00Z`) - Date.parse(`${startDate}T00:00:00Z`);
+  return dateDifference <= 2 * 86_400_000
+    && (dateDifference <= 86_400_000
+      || (new Date(`${startDate}T00:00:00Z`).getUTCDay() === 6 && endTime <= '06:00'))
+    && (dateDifference === 0 || new Date(`${endDate}T00:00:00Z`).getUTCDay() !== 1 || endTime <= '06:00');
+}
+
 function isClubEventActive(event: ClubEvent, now: Date): boolean {
   const today = berlinCalendarDate(now);
   const parts = berlinParts(now);
@@ -324,6 +340,8 @@ export class App implements OnDestroy {
     { id: 'heidegluehen', name: 'Heideglühen', district: 'Moabit', address: 'Seestraße 1', latitude: 52.5413, longitude: 13.3405, color: '#f87171' },
     { id: 'club-ost', name: 'Club OST', district: 'Stralau', address: 'Alt-Stralau 1–2', latitude: 52.5001, longitude: 13.4718, color: '#e879f9' },
     { id: 'kater', name: 'Kater Blau', district: 'Friedrichshain', address: 'Holzmarktstraße 25', latitude: 52.5125, longitude: 13.4297, color: '#a78bfa' },
+    { id: 'suess-war-gestern', name: 'Süß war gestern', district: 'Friedrichshain', address: 'Wühlischstraße 43', latitude: 52.5086027, longitude: 13.4610994, color: '#fb7185' },
+    { id: 'oxi', name: 'OXI', district: 'Lichtenberg', address: 'Wiesenweg 1–4', latitude: 52.5076121, longitude: 13.4749435, color: '#22d3ee' },
   ]);
 
   private readonly platformId = inject(PLATFORM_ID);
@@ -341,6 +359,8 @@ export class App implements OnDestroy {
     ['schwuz', [0, 70]],
     ['club-ost', [175, -75]],
     ['kater', [-110, -55]],
+    ['suess-war-gestern', [10, -85]],
+    ['oxi', [160, -75]],
   ]);
   private readonly compactLabelOffsets = new Map<string, readonly [number, number]>([
     ['berghain', [2, -66]],
@@ -355,6 +375,8 @@ export class App implements OnDestroy {
     ['rso-berlin', [-68, 6]],
     ['club-ost', [7, -150]],
     ['kater', [-32, -60]],
+    ['suess-war-gestern', [-65, -38]],
+    ['oxi', [5, -65]],
   ]);
   private leaflet?: typeof import('leaflet');
   private map?: Leaflet.Map;
@@ -870,12 +892,8 @@ export class App implements OnDestroy {
       || !eventDate || !eventTime || !eventEndDate || !eventEndTime
       || eventDate < berlinCalendarDate(new Date())
       || eventDate > berlinCalendarDate(new Date(), MAX_UPCOMING_EVENT_DAYS)
-      || `${eventEndDate}T${eventEndTime}` <= `${eventDate}T${eventTime}`
-      || eventEndDate > berlinCalendarDate(new Date(), MAX_UPCOMING_EVENT_DAYS + 2)
-      || Date.parse(`${eventEndDate}T00:00:00Z`) - Date.parse(`${eventDate}T00:00:00Z`) > 2 * 86_400_000
-      || (Date.parse(`${eventEndDate}T00:00:00Z`) - Date.parse(`${eventDate}T00:00:00Z`) > 86_400_000
-        && (new Date(`${eventDate}T00:00:00Z`).getUTCDay() !== 6 || eventEndTime > '06:00'))
-      || (eventEndDate > eventDate && new Date(`${eventEndDate}T00:00:00Z`).getUTCDay() === 1 && eventEndTime > '06:00')) {
+      || eventEndDate > berlinCalendarDate(new Date(), MAX_UPCOMING_EVENT_DAYS + 3)
+      || !isValidEventInterval(eventDate, eventTime, eventEndDate, eventEndTime)) {
       this.adminError.set(`Choose valid event start and end times within the next ${MAX_UPCOMING_EVENT_DAYS} days.`);
       return;
     }
@@ -1067,7 +1085,7 @@ export class App implements OnDestroy {
   }
 
   protected eventEndDateMaximum(): string {
-    return berlinCalendarDate(new Date(), MAX_UPCOMING_EVENT_DAYS + 2);
+    return berlinCalendarDate(new Date(), MAX_UPCOMING_EVENT_DAYS + 3);
   }
 
   protected metricCaption(): string {

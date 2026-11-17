@@ -74,7 +74,7 @@
             <div class="admin-list">
               @for (event of adminEvents(); track event.id) {
                 <article class="admin-list-item">
-                  <div class="admin-list-copy"><strong>{{ event.description }}</strong><span>{{ adminClubName(event.club_slug) }} · {{ formatEventDate(event.event_date, event.event_time) }}–{{ formatEventDate(event.event_end_date, event.event_end_time) }}@if (event.djs) { · DJs: {{ event.djs }} }</span></div>
+                  <div class="admin-list-copy"><strong>{{ event.description }}</strong><span>{{ adminClubName(event.club_slug) }} · {{ formatEventDate(event.event_date, event.event_time) }}–{{ formatEventDate(event.event_end_date, event.event_end_time) }}@if (event.event_end_estimated) { · End time estimated }@if (event.djs) { · DJs: {{ event.djs }} }</span></div>
                   <button type="button" class="secondary-action" [disabled]="adminBusy()" (click)="deleteEvent(event)">Delete</button>
                 </article>
               } @empty { <p class="admin-empty">No events scheduled.</p> }
@@ -232,6 +232,9 @@
               @if (tonightEvent()?.djs; as djs) {
                 <span class="event-djs">DJs: {{ djs }}</span>
               }
+              @if (tonightEvent()?.event_end_estimated) {
+                <span class="metric-note">Event end time is estimated.</span>
+              }
               <span class="metric-note">Event details from the team</span>
             </div>
           </div>
@@ -323,6 +326,7 @@
                   @for (event of upcomingClubEvents(); track event.id) {
                     <p class="event-item">
                       <strong>{{ formatEventDate(event.event_date) }}</strong> · {{ event.description }}
+                      @if (event.event_end_estimated) { <span class="event-djs"> · End time estimated</span> }
                       @if (event.djs) { <span class="event-djs"> · DJs: {{ event.djs }}</span> }
                     </p>
                   }
@@ -347,6 +351,9 @@
               <div class="prototype-notice" role="note">
                 No account needed. A random browser ID applies a 10-minute per-club cooldown and is not shown publicly.
               </div>
+              @if (tonightEvent()?.event_end_estimated) {
+                <p class="prototype-notice" role="note">The event end time is estimated and may not match the actual closing time.</p>
+              }
               @if (!backendConfigured) {
                 <p class="form-error" role="status">Supabase is not configured yet. Your report cannot be sent.</p>
               }
