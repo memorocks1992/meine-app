@@ -989,6 +989,41 @@ main {
   gap: 7px;
 }
 
+.price-input-label {
+  display: block;
+  margin-bottom: 8px;
+  color: #c8c1d0;
+  font-size: 12px;
+}
+
+.price-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 120px;
+  border: 1px solid #403a48;
+  border-radius: 9px;
+  padding: 0 11px;
+  background: #211e28;
+  color: #d7d1df;
+}
+
+.price-input-wrap:focus-within {
+  outline: 2px solid #a76ce0;
+  outline-offset: 2px;
+}
+
+.price-input-wrap input {
+  width: 100%;
+  min-width: 0;
+  min-height: 38px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #f7f4fb;
+  font: inherit;
+}
+
 .choice-button {
   min-height: 38px;
   border: 1px solid #403a48;

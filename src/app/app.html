@@ -411,17 +411,17 @@
               @if (!officialPrice()?.entry_price_complete) {
               <fieldset class="report-field" [disabled]="reportStatus() === 'submitting'">
                 <legend>Entry fee tonight</legend>
-                <div class="choice-grid price-choices">
-                  @for (price of entryRanges; track price) {
-                    <button
-                      type="button"
-                      class="choice-button"
-                      [class.selected]="reportDraft().entryRange === price"
-                      [attr.aria-pressed]="reportDraft().entryRange === price"
-                      (click)="setEntryRange(price)"
-                    >{{ price }}</button>
-                  }
+                <label class="price-input-label" for="entry-price">Amount in euros</label>
+                <div class="price-input-wrap">
+                  <span aria-hidden="true">€</span>
+                  <input id="entry-price" type="text" inputmode="numeric" pattern="[0-9]{1,2}" maxlength="2"
+                    placeholder="0–99" [value]="entryPriceInput()" (input)="setEntryPrice($event)"
+                    [attr.aria-invalid]="entryPriceInvalid()" aria-describedby="entry-price-hint" />
                 </div>
+                <p id="entry-price-hint" class="form-hint">
+                  @if (entryPriceInvalid()) { Enter a whole amount from 0 to 99 euros. }
+                  @else { Optional · whole euros, from 0 to 99. }
+                </p>
               </fieldset>
               }
 

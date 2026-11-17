@@ -24,6 +24,7 @@ describe('App', () => {
       id: 'berghain', name: 'Berghain', district: 'Friedrichshain',
       address: 'Am Wriezener Bahnhof', latitude: 52.5112, longitude: 13.4437, color: '#fb7185',
     });
+
     app['reportOpen'].set(true);
     fixture.detectChanges();
     const element = fixture.nativeElement as HTMLElement;
@@ -47,6 +48,99 @@ describe('App', () => {
     fixture.destroy();
   });
 
+  it('accepts a whole euro amount of at most two digits and rejects invalid input', () => {
+    const fixture = TestBed.createComponent(App);
+    const app = fixture.componentInstance;
+    app['selectedClub'].set({
+      id: 'berghain', name: 'Berghain', district: 'Friedrichshain',
+      address: 'Am Wriezener Bahnhof', latitude: 52.5112, longitude: 13.4437, color: '#fb7185',
+    });
+    app['reportOpen'].set(true);
+    fixture.detectChanges();
+    const input = (fixture.nativeElement as HTMLElement).querySelector<HTMLInputElement>('#entry-price')!;
+    expect(input.maxLength).toBe(2);
+    expect(app['reportReady']()).toBe(false);
+    for (const [value, expected] of [['0', '€0'], ['25', '€25'], ['99', '€99'], ['05', '€5']]) {
+      input.value = value;
+      input.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+      expect(app['reportDraft']().entryRange).toBe(expected);
+      expect(app['reportReady']()).toBe(true);
+    }
+    app['setWaitMinutes'](10);
+    for (const value of ['100', '-1', '1.5', 'ab']) {
+      input.value = value;
+      input.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+      expect(app['reportReady']()).toBe(false);
+      expect(input.getAttribute('aria-invalid')).toBe('true');
+    }
+    input.value = '';
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    expect(app['reportDraft']().entryRange).toBeNull();
+    expect(app['reportReady']()).toBe(true);
+    fixture.destroy();
+  });
+
+  it('submits the exact price and clears it after success', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-11-17T22:00:00Z'));
+    try {
+      const fixture = TestBed.createComponent(App);
+      const app = fixture.componentInstance;
+      const service = TestBed.inject(SupabaseService);
+      vi.spyOn(service, 'loadClubReports').mockResolvedValue([]);
+      vi.spyOn(service, 'loadClubEvents').mockResolvedValue([]);
+      vi.spyOn(service, 'getVisitorId').mockReturnValue('visitor');
+      const submit = vi.spyOn(service, 'submitReport').mockResolvedValue();
+      app['selectedClub'].set({
+        id: 'berghain', name: 'Berghain', district: 'Friedrichshain',
+        address: 'Am Wriezener Bahnhof', latitude: 52.5112, longitude: 13.4437, color: '#fb7185',
+      });
+      app['clubEvents'].set([{
+        id: 'event', club_slug: 'berghain', event_date: '2026-11-17', event_time: '22:00:00',
+        event_end_date: '2026-11-18', event_end_time: '06:00:00', description: 'Event', djs: null,
+      }]);
+      app['currentTime'].set(new Date());
+      app['clubDataStatus'].set('ready');
+      app['reportOpen'].set(true);
+      fixture.detectChanges();
+      const input = (fixture.nativeElement as HTMLElement).querySelector<HTMLInputElement>('#entry-price')!;
+      input.value = '25';
+      input.dispatchEvent(new Event('input'));
+      await app['submitReport']();
+      expect(submit).toHaveBeenCalledWith(expect.objectContaining({ entry_range: '€25' }));
+      expect(app['entryPriceInput']()).toBe('');
+      expect(app['reportDraft']().entryRange).toBeNull();
+
+      app['clubEvents'].set([{
+        id: 'event', club_slug: 'berghain', event_date: '2026-11-17', event_time: '22:00:00',
+        event_end_date: '2026-11-18', event_end_time: '06:00:00', description: 'Event', djs: null,
+        entry_price: '€20', entry_price_complete: true, entry_price_source: 'https://example.com',
+        entry_price_checked_at: new Date().toISOString(),
+      }]);
+      input.value = '25';
+      input.dispatchEvent(new Event('input'));
+      app['setWaitMinutes'](10);
+      fixture.detectChanges();
+      expect((fixture.nativeElement as HTMLElement).querySelector('#entry-price')).toBeNull();
+      app['entryPriceInput'].set('invalid');
+      expect(app['reportReady']()).toBe(true);
+      await app['submitReport']();
+      expect(submit).toHaveBeenLastCalledWith(expect.objectContaining({ entry_range: null, wait_minutes: 10 }));
+
+      app['entryPriceInput'].set('25');
+      app['selectClub'](null);
+      expect(app['entryPriceInput']()).toBe('');
+      expect(app['reportDraft']().entryRange).toBeNull();
+      fixture.destroy();
+    } finally {
+      vi.useRealTimers();
+      vi.restoreAllMocks();
+    }
+  });
+
   it('warns only at the agreed thresholds using recent same-event per-field medians', () => {
     const now = new Date('2026-11-17T22:00:00Z');
     const reports: PublicReport[] = [10, 20, 30].map((wait, index) => ({
@@ -55,6 +149,8 @@ describe('App', () => {
     }));
     expect(getReportOutliers({ waitMinutes: 109, entryRange: '€15–20' }, reports, 'event', now)).toEqual([]);
     expect(getReportOutliers({ waitMinutes: 110, entryRange: '€20–30' }, reports, 'event', now)).toHaveLength(2);
+    expect(getReportOutliers({ waitMinutes: null, entryRange: '€21' }, reports, 'event', now)).toHaveLength(1);
+    expect(getReportOutliers({ waitMinutes: null, entryRange: '€20' }, reports, 'event', now)).toEqual([]);
     expect(getReportOutliers({ waitMinutes: 110, entryRange: '€20–30' }, reports.slice(0, 2), 'event', now)).toEqual([]);
     const unrelated = [
       ...reports.slice(0, 2),
@@ -263,20 +359,20 @@ describe('App', () => {
       fixture.detectChanges();
       const element = fixture.nativeElement as HTMLElement;
       expect(element.querySelector('.entry-metric strong')?.textContent).toContain('€20 at the door');
-      expect(element.querySelector('.price-choices')).toBeNull();
+      expect(element.querySelector('#entry-price')).toBeNull();
       expect(app['reportReady']()).toBe(false);
       expect(element.querySelector('.entry-metric a')?.getAttribute('href')).toBe(event.entry_price_source);
 
       app['clubEvents'].set([{ ...event, entry_price: 'Free entry until 00:30', entry_price_complete: false }]);
       fixture.detectChanges();
       expect(element.querySelector('.entry-metric')?.textContent).toContain('Other entry prices unknown');
-      expect(element.querySelector('.price-choices')).not.toBeNull();
+      expect(element.querySelector('#entry-price')).not.toBeNull();
       expect(app['reportReady']()).toBe(true);
 
       app['clubEvents'].set([{ ...event, entry_price_checked_at: '2026-11-16T22:00:00Z' }]);
       fixture.detectChanges();
       expect(element.querySelector('.entry-metric strong')?.textContent).not.toContain('€20 at the door');
-      expect(element.querySelector('.price-choices')).not.toBeNull();
+      expect(element.querySelector('#entry-price')).not.toBeNull();
       expect(getFreshEventPrice({ ...event, entry_price_checked_at: '2026-11-20T00:00:00Z' }, now)).toBeNull();
       fixture.destroy();
   });

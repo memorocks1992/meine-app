@@ -37,6 +37,14 @@ const WAIT_REPORT_FRESHNESS_MS = 60 * 60 * 1000;
 const EVENT_PRICE_FRESHNESS_MS = 48 * 60 * 60 * 1000;
 const ENTRY_RANGES = ['Up to €10', '€10–15', '€15–20', '€20–30', '€30+'];
 
+function priceCategory(value: string | null): number {
+  const legacy = ENTRY_RANGES.indexOf(value ?? '');
+  if (legacy >= 0) return legacy;
+  if (!value || !/^€(?:0|[1-9]\d?)$/.test(value)) return -1;
+  const amount = Number(value.slice(1));
+  return amount <= 10 ? 0 : amount <= 15 ? 1 : amount <= 20 ? 2 : amount <= 30 ? 3 : 4;
+}
+
 const CLUB_WEBSITE_URLS: Readonly<Record<string, string>> = {
   berghain: 'https://www.berghain.berlin/',
   sisyphos: 'https://sisyphos-berlin.net/',
@@ -188,10 +196,10 @@ export function getReportOutliers(
   };
   const waitMedian = median(recent.flatMap((report) => report.wait_minutes === null ? [] : [report.wait_minutes]));
   const priceMedian = median(recent.flatMap((report) => {
-    const index = ENTRY_RANGES.indexOf(report.entry_range ?? '');
+    const index = priceCategory(report.entry_range);
     return index < 0 ? [] : [index];
   }));
-  const selectedPrice = ENTRY_RANGES.indexOf(draft.entryRange ?? '');
+  const selectedPrice = priceCategory(draft.entryRange);
   const warnings: string[] = [];
   if (draft.waitMinutes !== null && waitMedian !== null && Math.abs(draft.waitMinutes - waitMedian) >= 90) {
     warnings.push(`Wait time: ${draft.waitMinutes} min; median of recent reports: ${waitMedian} min.`);
@@ -300,7 +308,10 @@ export class App implements OnDestroy {
   protected readonly clubsWithEventsToday = signal<Set<string>>(new Set());
   private readonly eventIntervalsToday = signal<ClubEvent[]>([]);
   protected readonly meterSegments = Array.from({ length: 10 }, (_, index) => index + 1);
-  protected readonly entryRanges = ENTRY_RANGES;
+  protected readonly entryPriceInput = signal('');
+  protected readonly entryPriceInvalid = computed(() =>
+    this.entryPriceInput() !== '' && !/^\d{1,2}$/.test(this.entryPriceInput()),
+  );
   protected readonly reportDraft = signal<ReportDraft>({
     waitMinutes: null,
     entryRange: null,
@@ -309,6 +320,7 @@ export class App implements OnDestroy {
   });
   protected readonly reportReady = computed(() => {
     const draft = this.reportDraft();
+    if (!this.officialPrice()?.entry_price_complete && this.entryPriceInvalid()) return false;
     return draft.waitMinutes !== null
       || (draft.entryRange !== null && !this.officialPrice()?.entry_price_complete)
       || draft.entryChance !== null
@@ -590,8 +602,10 @@ export class App implements OnDestroy {
     this.updateReportDraft({ waitMinutes: null });
   }
 
-  protected setEntryRange(entryRange: string): void {
-    this.updateReportDraft({ entryRange });
+  protected setEntryPrice(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    this.entryPriceInput.set(value);
+    this.updateReportDraft({ entryRange: /^\d{1,2}$/.test(value) ? `€${Number(value)}` : null });
   }
 
   protected setEntryChance(event: Event): void {
@@ -671,6 +685,7 @@ export class App implements OnDestroy {
       if (this.selectedClub()?.id !== club.id) return;
       this.reportStatus.set('success');
       this.reportDraft.set({ waitMinutes: null, entryChance: null, mood: null, entryRange: null });
+      this.entryPriceInput.set('');
       await this.loadClubData(club);
     } catch (error) {
       console.error('Unable to check or submit the anonymous club report.', error);
@@ -1494,6 +1509,7 @@ export class App implements OnDestroy {
         entryChance: null,
         mood: null,
       });
+      this.entryPriceInput.set('');
       this.clubMetrics.set(null);
       this.clubReports.set([]);
       this.clubEvents.set([]);
