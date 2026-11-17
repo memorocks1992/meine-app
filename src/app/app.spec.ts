@@ -93,6 +93,26 @@ describe('App', () => {
     expect(compiled.querySelector('.community-notice')).toBeNull();
   });
 
+  it('opens the report form without implying that it opens the forum', () => {
+    const fixture = TestBed.createComponent(App);
+    fixture.componentInstance['selectedClub'].set({
+      id: 'berghain', name: 'Berghain', district: 'Friedrichshain',
+      address: 'Am Wriezener Bahnhof, 10243 Berlin', latitude: 52.5112, longitude: 13.4437, color: '#fb7185',
+    });
+    fixture.detectChanges();
+    const element = fixture.nativeElement as HTMLElement;
+    const toggle = element.querySelector<HTMLButtonElement>('.report-toggle')!;
+    expect(toggle.textContent).toContain('Share your report');
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    expect(element.querySelector('.forum-section')).not.toBeNull();
+    toggle.click();
+    fixture.detectChanges();
+    expect(toggle.getAttribute('aria-expanded')).toBe('true');
+    expect(element.querySelector('.report-section')).not.toBeNull();
+    expect(element.querySelector('.forum-section')).not.toBeNull();
+    fixture.destroy();
+  });
+
   it('reveals and copies the selected club address', async () => {
     const writeText = vi.fn().mockResolvedValue(undefined);
     const originalClipboard = Object.getOwnPropertyDescriptor(navigator, 'clipboard');
