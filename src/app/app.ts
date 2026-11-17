@@ -34,6 +34,7 @@ type ClubDataStatus = 'idle' | 'loading' | 'ready' | 'error' | 'unconfigured';
 
 const MAX_UPCOMING_EVENT_DAYS = 100;
 const WAIT_REPORT_FRESHNESS_MS = 60 * 60 * 1000;
+const EVENT_PRICE_FRESHNESS_MS = 48 * 60 * 60 * 1000;
 
 const CLUB_WEBSITE_URLS: Readonly<Record<string, string>> = {
   berghain: 'https://www.berghain.berlin/',
@@ -158,6 +159,15 @@ export function getCurrentClubEvent(events: ClubEvent[], now: Date): ClubEvent |
     )[0] ?? null;
 }
 
+export function getFreshEventPrice(event: ClubEvent | null, now: Date): ClubEvent | null {
+  const checkedAt = Date.parse(event?.entry_price_checked_at ?? '');
+  if (!event?.entry_price || !event.entry_price_source || !Number.isFinite(checkedAt)
+    || checkedAt > now.getTime() || now.getTime() - checkedAt > EVENT_PRICE_FRESHNESS_MS) {
+    return null;
+  }
+  return event;
+}
+
 export function isValidEventInterval(startDate: string, startTime: string, endDate: string, endTime: string): boolean {
   const start = Date.parse(`${startDate}T${startTime}:00Z`);
   const end = Date.parse(`${endDate}T${endTime}:00Z`);
@@ -267,7 +277,7 @@ export class App implements OnDestroy {
   protected readonly reportReady = computed(() => {
     const draft = this.reportDraft();
     return draft.waitMinutes !== null
-      || draft.entryRange !== null
+      || (draft.entryRange !== null && !this.officialPrice()?.entry_price_complete)
       || draft.entryChance !== null
       || draft.mood !== null;
   });
@@ -313,6 +323,7 @@ export class App implements OnDestroy {
       .sort((left, right) => left.event_date.localeCompare(right.event_date)),
   );
   protected readonly tonightEvent = computed(() => getCurrentClubEvent(this.clubEvents(), this.currentTime()));
+  protected readonly officialPrice = computed(() => getFreshEventPrice(this.tonightEvent(), this.currentTime()));
   protected readonly clubDataStatus = signal<ClubDataStatus>('idle');
   protected readonly adminOpen = signal(false);
   protected readonly adminUser = signal<User | null>(null);
@@ -579,7 +590,7 @@ export class App implements OnDestroy {
         wait_minutes: draft.waitMinutes,
         entry_chance: draft.entryChance,
         mood: draft.mood,
-        entry_range: draft.entryRange,
+        entry_range: this.officialPrice()?.entry_price_complete ? null : draft.entryRange,
       };
       await this.supabase.submitReport(report);
       this.reportStatus.set('success');

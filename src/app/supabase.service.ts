@@ -33,6 +33,10 @@ export interface ClubEvent {
   description: string;
   djs: string | null;
   event_end_estimated?: boolean;
+  entry_price?: string | null;
+  entry_price_complete?: boolean;
+  entry_price_source?: string | null;
+  entry_price_checked_at?: string | null;
 }
 
 export interface ManagedClub {
@@ -134,7 +138,7 @@ export class SupabaseService {
     const client = await this.requireClient();
     const { data, error } = await client
       .from('events')
-      .select('id, club_slug, event_date, event_time, event_end_date, event_end_time, description, djs, event_end_estimated')
+      .select('id, club_slug, event_date, event_time, event_end_date, event_end_time, description, djs, event_end_estimated, entry_price, entry_price_complete, entry_price_source, entry_price_checked_at')
       .eq('club_slug', clubSlug)
       .order('event_date', { ascending: true });
 
@@ -149,7 +153,7 @@ export class SupabaseService {
     const client = await this.requireClient();
     const { data, error } = await client
       .from('events')
-      .select('id, club_slug, event_date, event_time, event_end_date, event_end_time, description, djs, event_end_estimated')
+      .select('id, club_slug, event_date, event_time, event_end_date, event_end_time, description, djs, event_end_estimated, entry_price, entry_price_complete, entry_price_source, entry_price_checked_at')
       .lte('event_date', eventDate)
       .gte('event_end_date', eventDate)
       .limit(1000);
@@ -208,7 +212,7 @@ export class SupabaseService {
     const client = await this.requireClient();
     const { data, error } = await client
       .from('events')
-      .select('id, club_slug, event_date, event_time, event_end_date, event_end_time, description, djs, event_end_estimated')
+      .select('id, club_slug, event_date, event_time, event_end_date, event_end_time, description, djs, event_end_estimated, entry_price, entry_price_complete, entry_price_source, entry_price_checked_at')
       .order('event_date', { ascending: true })
       .limit(100);
     if (error) {
@@ -235,7 +239,14 @@ export class SupabaseService {
 
   async saveEvent(event: Pick<ClubEvent, 'club_slug' | 'event_date' | 'event_time' | 'event_end_date' | 'event_end_time' | 'description' | 'djs'>): Promise<void> {
     const client = await this.requireClient();
-    const { error } = await client.from('events').upsert({ ...event, event_end_estimated: false }, { onConflict: 'club_slug,event_date' });
+    const { error } = await client.from('events').upsert({
+      ...event,
+      event_end_estimated: false,
+      entry_price: null,
+      entry_price_complete: false,
+      entry_price_source: null,
+      entry_price_checked_at: null,
+    }, { onConflict: 'club_slug,event_date' });
     if (error) {
       throw error;
     }

@@ -267,9 +267,16 @@
             <section class="metric-card entry-metric">
               <div class="metric-title">
                 <h3><span class="heading-symbol" aria-hidden="true">€</span>Entry tonight</h3>
-                <strong>{{ clubMetrics()?.entryRange ?? '–' }}</strong>
+                <strong>{{ officialPrice()?.entry_price ?? clubMetrics()?.entryRange ?? '–' }}</strong>
               </div>
-              <p>{{ metricCaption() }}</p>
+              @if (officialPrice(); as price) {
+                <p><a [href]="price.entry_price_source" target="_blank" rel="noopener noreferrer">Club source ↗</a> · Checked {{ formatTimeAgo(price.entry_price_checked_at!) }}</p>
+                @if (!price.entry_price_complete) {
+                  <p>Other entry prices unknown.@if (clubMetrics()?.entryRange) { Community reported: {{ clubMetrics()?.entryRange }}. }</p>
+                }
+              } @else {
+                <p>{{ metricCaption() }}</p>
+              }
             </section>
           </div>
 
@@ -404,6 +411,7 @@
                 <div class="range-labels"><span>Low-key</span><span>Awesome</span></div>
               </fieldset>
 
+              @if (!officialPrice()?.entry_price_complete) {
               <fieldset class="report-field">
                 <legend>Entry fee tonight</legend>
                 <div class="choice-grid price-choices">
@@ -418,6 +426,7 @@
                   }
                 </div>
               </fieldset>
+              }
 
               <button type="button" class="submit-report" [disabled]="!reportReady() || !backendConfigured || reportStatus() === 'submitting'" (click)="submitReport()">
                 @if (reportStatus() === 'submitting') { Sending… } @else { Submit report }
