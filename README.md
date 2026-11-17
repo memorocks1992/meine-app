@@ -23,6 +23,24 @@ Reports are tied to the club event scheduled for that Berlin calendar date. All 
 
 The public report flow and admin authentication are wired to these tables. After an admin signs in, the dashboard can add/edit clubs, hide or publish them, schedule events, publish or remove live updates, and remove visitor reports. Hiding a club preserves its events, while reports expire after their event date. Until the Supabase project is configured, submission and sign-in stay disabled rather than pretending data was saved.
 
+## Automatic event import
+
+The importer uses no AI or paid search API. It reads the public calendars of **Berghain** and **Ritter Butzke** once a day, looking up to 60 Berlin calendar days ahead. The remaining clubs, including any newly added clubs, are **not covered** and must still be maintained manually; they are listed in the job log. Resident Advisor and blocked club sites are not bypassed. Listings, lineups, and dates can be incomplete, and website changes may break a parser.
+
+The sites do not consistently publish an exact ending time. The importer estimates the end as 12 hours after the published start, and the app labels it as estimated. Reports can be submitted during that estimated interval, even if the club has actually closed earlier or remains open longer. Events without a recognized start time, or whose estimated end violates the existing reporting rules (including the Monday 06:00 limit), are skipped. Multiple events on the same club/date can only be combined if their starts match; otherwise that date is skipped. Long lineups are omitted rather than truncated.
+
+Existing manually created events are never overwritten. Editing an imported event makes it manual; deleting an event suppresses further automatic imports for that club and date. To allow imports again for a deliberately deleted date, remove its row from `event_import_suppressions` in the Supabase SQL Editor. The importer updates its own future events, but **does not automatically remove events that disappear from a calendar**: cancellation and rescheduling must be checked and corrected manually. Failed or skipped dates and unsupported clubs are visible in the GitHub Actions log.
+
+### Setup and costs
+
+1. Apply all migrations, including [`20261117120000_automatic_events.sql`](./supabase/migrations/20261117120000_automatic_events.sql), before deploying the updated app. The migration adds the import RPC and database safeguards.
+2. Before enabling the job, verify that your Supabase project is on a no-charge plan with a hard spending limit or otherwise cannot incur charges. The importer cannot inspect or enforce Supabase billing. Do not enable it if you cannot guarantee this.
+3. This repository is currently public. GitHub-hosted standard runners for public repositories are free; the workflow deliberately skips the job if the repository becomes private. GitHub's terms or limits can change, so check them before enabling the job. The schedule can be delayed or disabled by GitHub.
+4. In GitHub repository **Settings → Secrets and variables → Actions**, add `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` using values from your Supabase project. The service-role key grants powerful database access: store it only as a GitHub Actions secret, never in the browser app, repository, or logs.
+5. Push the workflow to the default branch and run **Actions → Import club events → Run workflow** once. Check its log and the resulting events in the admin dashboard. Thereafter the workflow is scheduled daily at 05:17 UTC. The importer is not active merely because the files exist locally; migrations, secrets, and the pushed workflow are required.
+
+To preview the supported calendars without Supabase credentials or writes, run `node scripts/event-import.mjs --dry-run`. Run parser tests with `node --test scripts/event-import.test.mjs`. A successful preview does not test the database migration or publishing.
+
 ## Development server
 
 Install dependencies with `npm install`, then start the local development server:

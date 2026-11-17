@@ -74,7 +74,7 @@
             <div class="admin-list">
               @for (event of adminEvents(); track event.id) {
                 <article class="admin-list-item">
-                  <div class="admin-list-copy"><strong>{{ event.description }}</strong><span>{{ adminClubName(event.club_slug) }} · {{ formatEventDate(event.event_date, event.event_time) }}–{{ formatEventDate(event.event_end_date, event.event_end_time) }}@if (event.djs) { · DJs: {{ event.djs }} }</span></div>
+                  <div class="admin-list-copy"><strong>{{ event.description }}</strong><span>{{ adminClubName(event.club_slug) }} · {{ formatEventDate(event.event_date, event.event_time) }}–{{ formatEventDate(event.event_end_date, event.event_end_time) }}@if (event.import_end_estimated) { · End time estimated }@if (event.djs) { · DJs: {{ event.djs }} }</span></div>
                   <button type="button" class="secondary-action" [disabled]="adminBusy()" (click)="deleteEvent(event)">Delete</button>
                 </article>
               } @empty { <p class="admin-empty">No events scheduled.</p> }
@@ -323,6 +323,7 @@
                   @for (event of upcomingClubEvents(); track event.id) {
                     <p class="event-item">
                       <strong>{{ formatEventDate(event.event_date) }}</strong> · {{ event.description }}
+                      @if (event.import_end_estimated) { <span class="event-djs"> · End time estimated</span> }
                       @if (event.djs) { <span class="event-djs"> · DJs: {{ event.djs }}</span> }
                     </p>
                   }
