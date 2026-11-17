@@ -300,7 +300,6 @@ export class App implements OnDestroy {
   protected readonly clubsWithEventsToday = signal<Set<string>>(new Set());
   private readonly eventIntervalsToday = signal<ClubEvent[]>([]);
   protected readonly meterSegments = Array.from({ length: 10 }, (_, index) => index + 1);
-  protected readonly waitOptions = [0, 10, 20, 30, 45, 60, 90, 120, 180, 210, 240];
   protected readonly entryRanges = ENTRY_RANGES;
   protected readonly reportDraft = signal<ReportDraft>({
     waitMinutes: null,
@@ -583,6 +582,14 @@ export class App implements OnDestroy {
     this.updateReportDraft({ waitMinutes });
   }
 
+  protected setWaitMinutesFromSlider(event: Event): void {
+    this.setWaitMinutes(Number((event.target as HTMLInputElement).value));
+  }
+
+  protected clearWaitMinutes(): void {
+    this.updateReportDraft({ waitMinutes: null });
+  }
+
   protected setEntryRange(entryRange: string): void {
     this.updateReportDraft({ entryRange });
   }
@@ -604,9 +611,13 @@ export class App implements OnDestroy {
   protected async submitReport(confirmed = false): Promise<void> {
     const club = this.selectedClub();
     const currentEvent = getCurrentClubEvent(this.clubEvents(), new Date());
-    if (!club || !this.reportReady() || this.reportStatus() === 'submitting'
-      || (confirmed && (this.reportWarnings().length === 0
-        || this.reportWarningEventId() !== currentEvent?.id))) {
+    if (!club || !this.reportReady() || this.reportStatus() === 'submitting') {
+      return;
+    }
+    if (confirmed && (this.reportWarnings().length === 0
+      || this.reportWarningEventId() !== currentEvent?.id)) {
+      this.reportWarnings.set([]);
+      this.reportEventNotice.set('The event or your report changed. Please review and submit again.');
       return;
     }
     const eventNotice = getReportEventNotice(

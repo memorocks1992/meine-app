@@ -383,18 +383,16 @@
               }
 
               <fieldset class="report-field" [disabled]="reportStatus() === 'submitting'">
-                <legend>Wait time</legend>
-                <div class="choice-grid wait-choices">
-                  @for (minutes of waitOptions; track minutes) {
-                    <button
-                      type="button"
-                      class="choice-button"
-                      [class.selected]="reportDraft().waitMinutes === minutes"
-                      [attr.aria-pressed]="reportDraft().waitMinutes === minutes"
-                      (click)="setWaitMinutes(minutes)"
-                    >
-                      {{ minutes === 0 ? 'None' : minutes + ' min' }}
-                    </button>
+                <legend>Wait time <span>{{ reportDraft().waitMinutes === null ? 'Not selected' : reportDraft().waitMinutes + ' min' }}</span></legend>
+                <input type="range" min="0" max="240" step="10" [value]="reportDraft().waitMinutes ?? 0"
+                  (input)="setWaitMinutesFromSlider($event)" aria-label="Wait time in minutes"
+                  [attr.aria-valuetext]="reportDraft().waitMinutes === null ? 'Not selected' : reportDraft().waitMinutes + ' minutes'" />
+                <div class="range-labels"><span>0 min</span><span>240 min</span></div>
+                <div class="wait-actions">
+                  @if (reportDraft().waitMinutes === null) {
+                    <button type="button" class="wait-action" (click)="setWaitMinutes(0)">Select no wait</button>
+                  } @else {
+                    <button type="button" class="wait-action" (click)="clearWaitMinutes()">Clear wait time</button>
                   }
                 </div>
               </fieldset>

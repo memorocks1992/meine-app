@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
-import { App, calculateClubMetrics, getCurrentClubEvent, getForumPolicyNotice, getFreshEventPrice, getPartyNight, getReportEventNotice, isValidEventInterval } from './app';
-import type { PublicReport } from './supabase.service';
+import { App, calculateClubMetrics, getCurrentClubEvent, getForumPolicyNotice, getFreshEventPrice, getPartyNight, getReportEventNotice, getReportOutliers, isValidEventInterval } from './app';
+import { SupabaseService, type PublicReport } from './supabase.service';
 
 describe('App', () => {
   beforeEach(async () => {
@@ -15,6 +15,134 @@ describe('App', () => {
     const fixture = TestBed.createComponent(App);
     const app = fixture.componentInstance;
     expect(app).toBeTruthy();
+  });
+
+  it('lets visitors select and clear a ten-minute wait time without selecting one by default', () => {
+    const fixture = TestBed.createComponent(App);
+    const app = fixture.componentInstance;
+    app['selectedClub'].set({
+      id: 'berghain', name: 'Berghain', district: 'Friedrichshain',
+      address: 'Am Wriezener Bahnhof', latitude: 52.5112, longitude: 13.4437, color: '#fb7185',
+    });
+    app['reportOpen'].set(true);
+    fixture.detectChanges();
+    const element = fixture.nativeElement as HTMLElement;
+    const slider = element.querySelector<HTMLInputElement>('input[aria-label="Wait time in minutes"]')!;
+    expect([slider.min, slider.max, slider.step]).toEqual(['0', '240', '10']);
+    expect(slider.getAttribute('aria-valuetext')).toBe('Not selected');
+    expect(app['reportReady']()).toBe(false);
+    element.querySelector<HTMLButtonElement>('.wait-action')!.click();
+    fixture.detectChanges();
+    expect(app['reportDraft']().waitMinutes).toBe(0);
+    expect(app['reportReady']()).toBe(true);
+    slider.value = '50';
+    slider.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    expect(app['reportDraft']().waitMinutes).toBe(50);
+    expect(slider.getAttribute('aria-valuetext')).toBe('50 minutes');
+    element.querySelector<HTMLButtonElement>('.wait-action')!.click();
+    fixture.detectChanges();
+    expect(app['reportDraft']().waitMinutes).toBeNull();
+    expect(app['reportReady']()).toBe(false);
+    fixture.destroy();
+  });
+
+  it('warns only at the agreed thresholds using recent same-event per-field medians', () => {
+    const now = new Date('2026-11-17T22:00:00Z');
+    const reports: PublicReport[] = [10, 20, 30].map((wait, index) => ({
+      id: `${index}`, club_slug: 'berghain', event_id: 'event', wait_minutes: wait,
+      entry_range: '€10–15', entry_chance: 1, mood: 1, created_at: '2026-11-17T21:00:00Z',
+    }));
+    expect(getReportOutliers({ waitMinutes: 109, entryRange: '€15–20' }, reports, 'event', now)).toEqual([]);
+    expect(getReportOutliers({ waitMinutes: 110, entryRange: '€20–30' }, reports, 'event', now)).toHaveLength(2);
+    expect(getReportOutliers({ waitMinutes: 110, entryRange: '€20–30' }, reports.slice(0, 2), 'event', now)).toEqual([]);
+    const unrelated = [
+      ...reports.slice(0, 2),
+      { ...reports[2], event_id: 'other' },
+      { ...reports[2], created_at: '2026-11-17T20:59:59Z' },
+      { ...reports[2], created_at: '2026-11-17T22:00:01Z' },
+      { ...reports[2], created_at: 'invalid' },
+    ];
+    expect(getReportOutliers({ waitMinutes: 110, entryRange: '€20–30' }, unrelated, 'event', now)).toEqual([]);
+    const missingPrice = reports.map((report, index) => ({ ...report, entry_range: index ? null : report.entry_range }));
+    expect(getReportOutliers({ waitMinutes: null, entryRange: '€30+' }, missingPrice, 'event', now)).toEqual([]);
+  });
+
+  it('asks before submitting an outlier and accepts explicit confirmation', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-11-17T22:00:00Z'));
+    try {
+      const fixture = TestBed.createComponent(App);
+      const app = fixture.componentInstance;
+      const service = TestBed.inject(SupabaseService);
+      const reports: PublicReport[] = [10, 20, 30].map((wait, index) => ({
+        id: `${index}`, club_slug: 'berghain', event_id: 'event', wait_minutes: wait,
+        entry_range: '€10–15', entry_chance: null, mood: null, created_at: '2026-11-17T21:55:00Z',
+      }));
+      vi.spyOn(service, 'loadClubReports').mockResolvedValue(reports);
+      vi.spyOn(service, 'getVisitorId').mockReturnValue('visitor');
+      const submit = vi.spyOn(service, 'submitReport').mockResolvedValue();
+      app['selectedClub'].set({
+        id: 'berghain', name: 'Berghain', district: 'Friedrichshain',
+        address: 'Am Wriezener Bahnhof', latitude: 52.5112, longitude: 13.4437, color: '#fb7185',
+      });
+      app['clubEvents'].set([{
+        id: 'event', club_slug: 'berghain', event_date: '2026-11-17', event_time: '22:00:00',
+        event_end_date: '2026-11-18', event_end_time: '06:00:00', description: 'Event', djs: null,
+      }]);
+      app['currentTime'].set(new Date());
+      app['clubDataStatus'].set('ready');
+      app['reportOpen'].set(true);
+      app['reportDraft'].set({ waitMinutes: 110, entryRange: '€20–30', entryChance: null, mood: null });
+      await app['submitReport']();
+      fixture.detectChanges();
+      expect(submit).not.toHaveBeenCalled();
+      expect(fixture.nativeElement.querySelector('.report-outlier-warning')?.textContent).toContain('Does this look right?');
+      expect(app['reportWarnings']()).toHaveLength(2);
+      app['setWaitMinutes'](120);
+      expect(app['reportWarnings']()).toEqual([]);
+      await app['submitReport']();
+      expect(app['reportWarnings']()).toHaveLength(2);
+      vi.spyOn(service, 'loadClubEvents').mockResolvedValue([]);
+      await app['submitReport'](true);
+      expect(submit).toHaveBeenCalledOnce();
+      expect(submit).toHaveBeenCalledWith(expect.objectContaining({ wait_minutes: 120, entry_range: '€20–30' }));
+      fixture.destroy();
+    } finally {
+      vi.useRealTimers();
+      vi.restoreAllMocks();
+    }
+  });
+
+  it('does not submit when comparison data cannot be loaded', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-11-17T22:00:00Z'));
+    try {
+      const fixture = TestBed.createComponent(App);
+      const app = fixture.componentInstance;
+      const service = TestBed.inject(SupabaseService);
+      vi.spyOn(service, 'loadClubReports').mockRejectedValue(new Error('Network unavailable'));
+      const submit = vi.spyOn(service, 'submitReport').mockResolvedValue();
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+      app['selectedClub'].set({
+        id: 'berghain', name: 'Berghain', district: 'Friedrichshain',
+        address: 'Am Wriezener Bahnhof', latitude: 52.5112, longitude: 13.4437, color: '#fb7185',
+      });
+      app['clubEvents'].set([{
+        id: 'event', club_slug: 'berghain', event_date: '2026-11-17', event_time: '22:00:00',
+        event_end_date: '2026-11-18', event_end_time: '06:00:00', description: 'Event', djs: null,
+      }]);
+      app['clubDataStatus'].set('ready');
+      app['reportOpen'].set(true);
+      app['reportDraft'].set({ waitMinutes: 10, entryRange: null, entryChance: null, mood: null });
+      await app['submitReport']();
+      expect(submit).not.toHaveBeenCalled();
+      expect(app['reportError']()).toContain('Could not check or submit');
+      fixture.destroy();
+    } finally {
+      vi.useRealTimers();
+      vi.restoreAllMocks();
+    }
   });
 
   it('allows events starting on New Year’s Eve to last up to 72 hours', () => {

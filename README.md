@@ -21,6 +21,8 @@ The report cooldown uses a random browser ID stored in local storage and is enfo
 
 Before a report is submitted, the app checks waiting time and entry-price category against the median of at least three reports for the same event from the past hour. A difference of at least 90 minutes or two price categories prompts the visitor to correct or confirm their entry. This client-side check helps catch mistakes but is not a security or anti-sabotage boundary: a determined visitor can confirm or bypass it. If current comparison reports cannot be loaded, the app asks the visitor to try again instead of submitting unchecked.
 
+Waiting times are selected from 0 to 240 minutes in ten-minute steps. Apply the [wait-time migration](./supabase/migrations/20261117180000_wait_time_scale.sql) before deploying the updated form; it retains the legacy 45-minute value for existing reports and older clients.
+
 Reports are tied to the active club event, and its reports are removed shortly after that event ends. Events starting on 31 December may run for up to 72 hours; other events retain the existing weekend limits. Multiple listings for one club and date share one event interval, which can include gaps between listings. Where a published end time is unavailable, the programme marks the end as estimated; reports can be submitted until that estimate even if the club closes earlier.
 
 The Süß war gestern and OXI programme is a manually researched snapshot as of 17 November 2026, not an automatic import. Sources are listed in the [event migration](./supabase/migrations/20261117150000_suess_oxi_events.sql); listings can change and not all future events may have been published. Review the programme and estimated end times in the admin dashboard.
