@@ -381,16 +381,16 @@ export class App implements OnDestroy {
     { id: 'tresor', name: 'Tresor', district: 'Mitte', address: 'Köpenicker Straße 70, 10179 Berlin', latitude: 52.5101, longitude: 13.4186, color: '#38bdf8' },
     { id: 'kitkatclub', name: 'KitKatClub', district: 'Mitte', address: 'Köpenicker Straße 76, 10179 Berlin', latitude: 52.5095, longitude: 13.4198, color: '#c084fc' },
     { id: 'about-blank', name: 'about:blank', district: 'Friedrichshain', address: 'Markgrafendamm 24c, 10245 Berlin', latitude: 52.503, longitude: 13.4693, color: '#4ade80' },
-    { id: 'wilde-renate', name: 'Wilde Renate', district: 'Stralau', address: 'Alt-Stralau 70', latitude: 52.4985, longitude: 13.4667, color: '#fb923c' },
+    { id: 'wilde-renate', name: 'Wilde Renate', district: 'Stralau', address: 'Alt-Stralau 70, 10245 Berlin', latitude: 52.4985, longitude: 13.4667, color: '#fb923c' },
     { id: 'club-der-visionaere', name: 'Club der Visionäre', district: 'Treptow', address: 'Am Flutgraben 1, 12435 Berlin', latitude: 52.4941, longitude: 13.4201, color: '#2dd4bf' },
     { id: 'ritter-butzke', name: 'Ritter Butzke', district: 'Kreuzberg', address: 'Ritterstraße 24–27, 10969 Berlin', latitude: 52.502, longitude: 13.4107, color: '#f472b6' },
     { id: 'schwuz', name: 'SchwuZ', district: 'Neukölln', address: 'Rollbergstraße 26, 12053 Berlin', latitude: 52.4814, longitude: 13.431, color: '#a3e635' },
     { id: 'rso-berlin', name: 'RSO.Berlin', district: 'Niederschöneweide', address: 'Schnellerstraße 137, 12439 Berlin', latitude: 52.4558, longitude: 13.5105, color: '#818cf8' },
-    { id: 'heidegluehen', name: 'Heideglühen', district: 'Moabit', address: 'Seestraße 1', latitude: 52.5413, longitude: 13.3405, color: '#f87171' },
+    { id: 'heidegluehen', name: 'Heideglühen', district: 'Moabit', address: 'Seestraße 1, 13353 Berlin', latitude: 52.5413, longitude: 13.3405, color: '#f87171' },
     { id: 'club-ost', name: 'Club OST', district: 'Stralau', address: 'Alt-Stralau 1–2, 10245 Berlin', latitude: 52.5001, longitude: 13.4718, color: '#e879f9' },
     { id: 'kater', name: 'Kater Blau', district: 'Friedrichshain', address: 'Holzmarktstraße 25, 10243 Berlin', latitude: 52.5125, longitude: 13.4297, color: '#a78bfa' },
-    { id: 'suess-war-gestern', name: 'Süß war gestern', district: 'Friedrichshain', address: 'Wühlischstraße 43', latitude: 52.5086027, longitude: 13.4610994, color: '#fb7185' },
-    { id: 'oxi', name: 'OXI', district: 'Lichtenberg', address: 'Wiesenweg 1–4', latitude: 52.5076121, longitude: 13.4749435, color: '#22d3ee' },
+    { id: 'suess-war-gestern', name: 'Süß war gestern', district: 'Friedrichshain', address: 'Wühlischstraße 43, 10245 Berlin', latitude: 52.5086027, longitude: 13.4610994, color: '#fb7185' },
+    { id: 'oxi', name: 'OXI', district: 'Lichtenberg', address: 'Wiesenweg 1–4, 10365 Berlin', latitude: 52.5076121, longitude: 13.4749435, color: '#22d3ee' },
   ]);
 
   private readonly platformId = inject(PLATFORM_ID);
