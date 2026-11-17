@@ -35,6 +35,7 @@ type ClubDataStatus = 'idle' | 'loading' | 'ready' | 'error' | 'unconfigured';
 const MAX_UPCOMING_EVENT_DAYS = 100;
 const WAIT_REPORT_FRESHNESS_MS = 60 * 60 * 1000;
 const EVENT_PRICE_FRESHNESS_MS = 48 * 60 * 60 * 1000;
+const ENTRY_RANGES = ['Up to €10', '€10–15', '€15–20', '€20–30', '€30+'];
 
 const CLUB_WEBSITE_URLS: Readonly<Record<string, string>> = {
   berghain: 'https://www.berghain.berlin/',
@@ -168,6 +169,39 @@ export function getFreshEventPrice(event: ClubEvent | null, now: Date): ClubEven
   return event;
 }
 
+export function getReportOutliers(
+  draft: Pick<ReportDraft, 'waitMinutes' | 'entryRange'>,
+  reports: PublicReport[],
+  eventId: string,
+  now: Date,
+): string[] {
+  const recent = reports.filter((report) => {
+    const time = Date.parse(report.created_at);
+    return report.event_id === eventId && Number.isFinite(time)
+      && time <= now.getTime() && now.getTime() - time <= WAIT_REPORT_FRESHNESS_MS;
+  });
+  const median = (values: number[]): number | null => {
+    if (values.length < 3) return null;
+    const sorted = [...values].sort((a, b) => a - b);
+    const middle = Math.floor(sorted.length / 2);
+    return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2;
+  };
+  const waitMedian = median(recent.flatMap((report) => report.wait_minutes === null ? [] : [report.wait_minutes]));
+  const priceMedian = median(recent.flatMap((report) => {
+    const index = ENTRY_RANGES.indexOf(report.entry_range ?? '');
+    return index < 0 ? [] : [index];
+  }));
+  const selectedPrice = ENTRY_RANGES.indexOf(draft.entryRange ?? '');
+  const warnings: string[] = [];
+  if (draft.waitMinutes !== null && waitMedian !== null && Math.abs(draft.waitMinutes - waitMedian) >= 90) {
+    warnings.push(`Wait time: ${draft.waitMinutes} min; median of recent reports: ${waitMedian} min.`);
+  }
+  if (selectedPrice >= 0 && priceMedian !== null && Math.abs(selectedPrice - priceMedian) >= 2) {
+    warnings.push(`Entry fee: ${draft.entryRange}; this differs considerably from recent reports.`);
+  }
+  return warnings;
+}
+
 export function isValidEventInterval(startDate: string, startTime: string, endDate: string, endTime: string): boolean {
   const start = Date.parse(`${startDate}T${startTime}:00Z`);
   const end = Date.parse(`${endDate}T${endTime}:00Z`);
@@ -267,7 +301,7 @@ export class App implements OnDestroy {
   private readonly eventIntervalsToday = signal<ClubEvent[]>([]);
   protected readonly meterSegments = Array.from({ length: 10 }, (_, index) => index + 1);
   protected readonly waitOptions = [0, 10, 20, 30, 45, 60, 90, 120, 180, 210, 240];
-  protected readonly entryRanges = ['Up to €10', '€10–15', '€15–20', '€20–30', '€30+'];
+  protected readonly entryRanges = ENTRY_RANGES;
   protected readonly reportDraft = signal<ReportDraft>({
     waitMinutes: null,
     entryRange: null,
@@ -290,6 +324,7 @@ export class App implements OnDestroy {
   protected readonly addressCopyStatus = signal<'idle' | 'copying' | 'success' | 'error'>('idle');
   protected readonly reportStatus = signal<'idle' | 'submitting' | 'success' | 'error'>('idle');
   protected readonly reportError = signal<string | null>(null);
+  protected readonly reportWarnings = signal<string[]>([]);
   protected readonly forumPosts = signal<ForumPost[]>([]);
   protected readonly forumPage = signal(1);
   protected readonly forumPageSize = 10;
@@ -527,7 +562,9 @@ export class App implements OnDestroy {
   }
 
   protected toggleReport(): void {
+    if (this.reportStatus() === 'submitting') return;
     this.reportOpen.update((open) => !open);
+    this.reportWarnings.set([]);
     this.reportStatus.set('idle');
     this.reportError.set(null);
     this.reportEventNotice.set(null);
@@ -563,14 +600,16 @@ export class App implements OnDestroy {
     return value !== null && segment <= value;
   }
 
-  protected async submitReport(): Promise<void> {
+  protected async submitReport(confirmed = false): Promise<void> {
     const club = this.selectedClub();
-    if (!club || !this.reportReady() || this.reportStatus() === 'submitting') {
+    const currentEvent = getCurrentClubEvent(this.clubEvents(), new Date());
+    if (!club || !this.reportReady() || this.reportStatus() === 'submitting'
+      || (confirmed && this.reportWarnings().length === 0)) {
       return;
     }
     const eventNotice = getReportEventNotice(
       this.clubDataStatus(),
-      this.tonightEvent() !== null,
+      currentEvent !== null,
       club.name,
     );
     if (eventNotice) {
@@ -582,8 +621,30 @@ export class App implements OnDestroy {
     this.reportError.set(null);
 
     try {
-      const visitorId = this.supabase.getVisitorId();
       const draft = this.reportDraft();
+      const event = currentEvent!;
+      if (!confirmed) {
+        const reports = await this.supabase.loadClubReports(club.id, event.id);
+        if (this.selectedClub()?.id !== club.id || !this.reportOpen() || this.reportDraft() !== draft
+          || getCurrentClubEvent(this.clubEvents(), new Date())?.id !== event.id) {
+          if (this.selectedClub()?.id === club.id) {
+            this.reportStatus.set('idle');
+            this.reportEventNotice.set('The event or your report changed. Please review and submit again.');
+          }
+          return;
+        }
+        const warnings = getReportOutliers(
+          { ...draft, entryRange: this.officialPrice()?.entry_price_complete ? null : draft.entryRange },
+          reports, event.id, new Date(),
+        );
+        if (warnings.length) {
+          this.reportWarnings.set(warnings);
+          this.reportStatus.set('idle');
+          return;
+        }
+      }
+      this.reportWarnings.set([]);
+      const visitorId = this.supabase.getVisitorId();
       const report: NewReport = {
         club_slug: club.id,
         visitor_id: visitorId,
@@ -597,9 +658,9 @@ export class App implements OnDestroy {
       this.reportDraft.set({ waitMinutes: null, entryChance: null, mood: null, entryRange: null });
       await this.loadClubData(club);
     } catch (error) {
-      console.error('Unable to submit the anonymous club report.', error);
+      console.error('Unable to check or submit the anonymous club report.', error);
       this.reportStatus.set('error');
-      this.reportError.set(this.getErrorMessage(error));
+      this.reportError.set(`Could not check or submit your report. ${this.getErrorMessage(error)}`);
     }
   }
 
@@ -1408,6 +1469,7 @@ export class App implements OnDestroy {
       this.addressOpen.set(false);
       this.addressCopyStatus.set('idle');
       this.reportStatus.set('idle');
+      this.reportWarnings.set([]);
       this.reportError.set(null);
       this.reportEventNotice.set(null);
       this.reportDraft.set({
@@ -1439,6 +1501,7 @@ export class App implements OnDestroy {
 
   private updateReportDraft(update: Partial<ReportDraft>): void {
     this.reportDraft.update((draft) => ({ ...draft, ...update }));
+    this.reportWarnings.set([]);
     this.reportStatus.set('idle');
     this.reportError.set(null);
   }
