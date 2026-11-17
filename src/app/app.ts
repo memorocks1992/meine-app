@@ -325,6 +325,7 @@ export class App implements OnDestroy {
   protected readonly reportStatus = signal<'idle' | 'submitting' | 'success' | 'error'>('idle');
   protected readonly reportError = signal<string | null>(null);
   protected readonly reportWarnings = signal<string[]>([]);
+  private readonly reportWarningEventId = signal<string | null>(null);
   protected readonly forumPosts = signal<ForumPost[]>([]);
   protected readonly forumPage = signal(1);
   protected readonly forumPageSize = 10;
@@ -604,7 +605,8 @@ export class App implements OnDestroy {
     const club = this.selectedClub();
     const currentEvent = getCurrentClubEvent(this.clubEvents(), new Date());
     if (!club || !this.reportReady() || this.reportStatus() === 'submitting'
-      || (confirmed && this.reportWarnings().length === 0)) {
+      || (confirmed && (this.reportWarnings().length === 0
+        || this.reportWarningEventId() !== currentEvent?.id))) {
       return;
     }
     const eventNotice = getReportEventNotice(
@@ -639,6 +641,7 @@ export class App implements OnDestroy {
         );
         if (warnings.length) {
           this.reportWarnings.set(warnings);
+          this.reportWarningEventId.set(event.id);
           this.reportStatus.set('idle');
           return;
         }
@@ -654,11 +657,13 @@ export class App implements OnDestroy {
         entry_range: this.officialPrice()?.entry_price_complete ? null : draft.entryRange,
       };
       await this.supabase.submitReport(report);
+      if (this.selectedClub()?.id !== club.id) return;
       this.reportStatus.set('success');
       this.reportDraft.set({ waitMinutes: null, entryChance: null, mood: null, entryRange: null });
       await this.loadClubData(club);
     } catch (error) {
       console.error('Unable to check or submit the anonymous club report.', error);
+      if (this.selectedClub()?.id !== club.id) return;
       this.reportStatus.set('error');
       this.reportError.set(`Could not check or submit your report. ${this.getErrorMessage(error)}`);
     }

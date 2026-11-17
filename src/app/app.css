@@ -778,6 +778,25 @@ main {
   opacity: 0.6;
 }
 
+.report-outlier-warning {
+  margin: 16px 0;
+  border: 1px solid #a87c47;
+  border-radius: 10px;
+  padding: 14px;
+  background: #2a221c;
+  color: #f5e4ce;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.report-outlier-warning p {
+  margin: 8px 0;
+}
+
+.report-outlier-warning ul {
+  padding-left: 20px;
+}
+
 .maps-link:hover {
   border-color: var(--purple);
   background: #211a2c;

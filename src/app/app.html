@@ -359,7 +359,7 @@
             }
           </div>
 
-          <button type="button" class="report-toggle" (click)="toggleReport()" [attr.aria-expanded]="reportOpen()">
+          <button type="button" class="report-toggle" [disabled]="reportStatus() === 'submitting'" (click)="toggleReport()" [attr.aria-expanded]="reportOpen()">
             @if (reportOpen()) { Close } @else { ✎ Share your report }
           </button>
 
@@ -382,7 +382,7 @@
                 <p class="form-error" role="status">Supabase is not configured yet. Your report cannot be sent.</p>
               }
 
-              <fieldset class="report-field">
+              <fieldset class="report-field" [disabled]="reportStatus() === 'submitting'">
                 <legend>Wait time</legend>
                 <div class="choice-grid wait-choices">
                   @for (minutes of waitOptions; track minutes) {
@@ -399,20 +399,20 @@
                 </div>
               </fieldset>
 
-              <fieldset class="report-field">
+              <fieldset class="report-field" [disabled]="reportStatus() === 'submitting'">
                 <legend>Door Odds <span>{{ reportDraft().entryChance ?? '–' }} / 10</span></legend>
                 <input type="range" min="1" max="10" step="1" [value]="reportDraft().entryChance ?? 5" (input)="setEntryChance($event)" aria-label="Door Odds from 1 to 10" />
                 <div class="range-labels"><span>Very unlikely</span><span>Very likely</span></div>
               </fieldset>
 
-              <fieldset class="report-field">
+              <fieldset class="report-field" [disabled]="reportStatus() === 'submitting'">
                 <legend>Club vibe <span>{{ reportDraft().mood ?? '–' }} / 10</span></legend>
                 <input type="range" min="1" max="10" step="1" [value]="reportDraft().mood ?? 5" (input)="setMood($event)" aria-label="Vibe and DJs from 1 to 10" />
                 <div class="range-labels"><span>Low-key</span><span>Awesome</span></div>
               </fieldset>
 
               @if (!officialPrice()?.entry_price_complete) {
-              <fieldset class="report-field">
+              <fieldset class="report-field" [disabled]="reportStatus() === 'submitting'">
                 <legend>Entry fee tonight</legend>
                 <div class="choice-grid price-choices">
                   @for (price of entryRanges; track price) {
@@ -428,9 +428,22 @@
               </fieldset>
               }
 
-              <button type="button" class="submit-report" [disabled]="!reportReady() || !backendConfigured || reportStatus() === 'submitting'" (click)="submitReport()">
-                @if (reportStatus() === 'submitting') { Sending… } @else { Submit report }
-              </button>
+              @if (reportWarnings().length) {
+                <div class="report-outlier-warning" role="alert">
+                  <strong>Does this look right?</strong>
+                  <p>Your report differs from recent community reports. Did you select the wrong value?</p>
+                  <ul>@for (warning of reportWarnings(); track warning) { <li>{{ warning }}</li> }</ul>
+                  <p>Conditions and prices can change. If your observation is correct, you can still submit it.</p>
+                  <button type="button" class="submit-report" [disabled]="reportStatus() === 'submitting'" (click)="submitReport(true)">
+                    @if (reportStatus() === 'submitting') { Sending… } @else { Yes, submit my report }
+                  </button>
+                  <button type="button" class="secondary-action" [disabled]="reportStatus() === 'submitting'" (click)="reportWarnings.set([])">No, let me correct it</button>
+                </div>
+              } @else {
+                <button type="button" class="submit-report" [disabled]="!reportReady() || !backendConfigured || reportStatus() === 'submitting'" (click)="submitReport()">
+                  @if (reportStatus() === 'submitting') { Checking… } @else { Submit report }
+                </button>
+              }
               @if (reportEventNotice(); as notice) {
                 <p class="form-error" role="alert">{{ notice }}</p>
               }
