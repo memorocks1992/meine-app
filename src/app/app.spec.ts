@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
-import { App, calculateClubMetrics, getCurrentClubEvent, getForumPolicyNotice, getPartyNight, getReportEventNotice, isValidEventInterval } from './app';
+import { App, calculateClubMetrics, getCurrentClubEvent, getForumPolicyNotice, getFreshEventPrice, getPartyNight, getReportEventNotice, isValidEventInterval } from './app';
 import type { PublicReport } from './supabase.service';
 
 describe('App', () => {
@@ -99,6 +99,7 @@ describe('App', () => {
       id: 'berghain', name: 'Berghain', district: 'Friedrichshain',
       address: 'Am Wriezener Bahnhof, 10243 Berlin', latitude: 52.5112, longitude: 13.4437, color: '#fb7185',
     });
+
     fixture.detectChanges();
     const element = fixture.nativeElement as HTMLElement;
     const toggle = element.querySelector<HTMLButtonElement>('.report-toggle')!;
@@ -111,6 +112,45 @@ describe('App', () => {
     expect(element.querySelector('.report-section')).not.toBeNull();
     expect(element.querySelector('.forum-section')).not.toBeNull();
     fixture.destroy();
+  });
+
+  it('uses a fresh complete event price and hides the price report, but retains partial and stale reporting', () => {
+      const fixture = TestBed.createComponent(App);
+      const app = fixture.componentInstance;
+      const now = new Date('2026-11-19T23:15:00+01:00');
+      app['currentTime'].set(now);
+      app['selectedClub'].set({
+        id: 'club-ost', name: 'Club OST', district: 'Stralau',
+        address: 'Alt-Stralau 1–2, 10245 Berlin', latitude: 52.5001, longitude: 13.4718, color: '#e879f9',
+      });
+      const event = {
+        id: 'event', club_slug: 'club-ost', event_date: '2026-11-19', event_time: '23:00:00',
+        event_end_date: '2026-11-20', event_end_time: '06:00:00', description: 'SAVORY', djs: null,
+        entry_price: '€20 at the door', entry_price_complete: true, entry_price_source: 'https://clubost.de/event/123/',
+        entry_price_checked_at: now.toISOString(),
+      };
+      app['clubEvents'].set([event]);
+      app['reportOpen'].set(true);
+      app['reportDraft'].set({ waitMinutes: null, entryChance: null, mood: null, entryRange: '€20–30' });
+      fixture.detectChanges();
+      const element = fixture.nativeElement as HTMLElement;
+      expect(element.querySelector('.entry-metric strong')?.textContent).toContain('€20 at the door');
+      expect(element.querySelector('.price-choices')).toBeNull();
+      expect(app['reportReady']()).toBe(false);
+      expect(element.querySelector('.entry-metric a')?.getAttribute('href')).toBe(event.entry_price_source);
+
+      app['clubEvents'].set([{ ...event, entry_price: 'Free entry until 00:30', entry_price_complete: false }]);
+      fixture.detectChanges();
+      expect(element.querySelector('.entry-metric')?.textContent).toContain('Other entry prices unknown');
+      expect(element.querySelector('.price-choices')).not.toBeNull();
+      expect(app['reportReady']()).toBe(true);
+
+      app['clubEvents'].set([{ ...event, entry_price_checked_at: '2026-11-16T22:00:00Z' }]);
+      fixture.detectChanges();
+      expect(element.querySelector('.entry-metric strong')?.textContent).not.toContain('€20 at the door');
+      expect(element.querySelector('.price-choices')).not.toBeNull();
+      expect(getFreshEventPrice({ ...event, entry_price_checked_at: '2026-11-20T00:00:00Z' }, now)).toBeNull();
+      fixture.destroy();
   });
 
   it('reveals and copies the selected club address', async () => {
