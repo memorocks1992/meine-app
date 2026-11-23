@@ -37,6 +37,8 @@ The entry-price pilot checks Club OST's official calendar every six hours using 
 
 The public report flow and admin authentication are wired to these tables. After an admin signs in, the dashboard can add/edit clubs, hide or publish them, schedule events, publish or remove live updates, and remove visitor reports. Hiding a club preserves its events. Until the Supabase project is configured, submission and sign-in stay disabled rather than pretending data was saved.
 
+Live updates expire 48 hours after publication, independently of the date and time entered for display. Apply the [live-update expiry migration](./supabase/migrations/20261123090000_live_update_expiry.sql) before deploying the updated app. It hides expired updates immediately, removes existing expired entries on migration, and schedules database cleanup every minute (physical deletion can therefore be up to a minute later). Older entries have no recorded publication timestamp, so their displayed Berlin date and time are used as an approximation, capped at the migration time. Verify that the `live-updates-expiry` pg_cron job is active.
+
 ## Development server
 
 Install dependencies with `npm install`, then start the local development server:

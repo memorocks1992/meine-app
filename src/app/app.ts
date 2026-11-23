@@ -444,10 +444,14 @@ export class App implements OnDestroy {
   private destroyed = false;
   private compactLayout = false;
   private partyNightInterval?: ReturnType<typeof setInterval>;
+  private liveUpdateExpiryTimer?: ReturnType<typeof setTimeout>;
   private readonly refreshPartyNight = () => {
     const now = new Date();
     const previousEventId = this.tonightEvent()?.id ?? null;
     this.currentTime.set(now);
+    this.adminLiveUpdates.update((updates) =>
+      updates.filter((update) => Date.parse(update.created_at) + 48 * 60 * 60 * 1000 > now.getTime()),
+    );
     this.partyNight.set(getPartyNight(now));
     this.refreshActiveClubIcons();
     const calendarDate = berlinCalendarDate(now);
@@ -538,6 +542,9 @@ export class App implements OnDestroy {
     }
     if (this.partyNightInterval) {
       clearInterval(this.partyNightInterval);
+    }
+    if (this.liveUpdateExpiryTimer) {
+      clearTimeout(this.liveUpdateExpiryTimer);
     }
     this.map?.remove();
   }
@@ -1310,7 +1317,26 @@ export class App implements OnDestroy {
       return;
     }
     try {
-      this.liveUpdates.set(await this.supabase.loadLiveUpdates());
+      const updates = await this.supabase.loadLiveUpdates();
+      if (this.destroyed) {
+        return;
+      }
+      if (this.liveUpdateExpiryTimer) {
+        clearTimeout(this.liveUpdateExpiryTimer);
+      }
+      const update = updates[0];
+      const createdAt = update ? Date.parse(update.created_at) : 0;
+      if (update && !Number.isFinite(createdAt)) {
+        throw new Error('Live update has an invalid publication timestamp.');
+      }
+      const remaining = update ? createdAt + 48 * 60 * 60 * 1000 - Date.now() : 0;
+      this.liveUpdates.set(remaining > 0 ? updates : []);
+      if (remaining > 0) {
+        this.liveUpdateExpiryTimer = setTimeout(() => {
+          this.liveUpdates.set([]);
+          void this.loadPublicLiveUpdate();
+        }, remaining);
+      }
     } catch (error) {
       console.error('Unable to load the public live update.', error);
     }

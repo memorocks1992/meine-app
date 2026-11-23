@@ -54,7 +54,10 @@ export interface LiveUpdate {
   datum: string;
   uhrzeit: string;
   text: string;
+  created_at: string;
 }
+
+export type NewLiveUpdate = Pick<LiveUpdate, 'datum' | 'uhrzeit' | 'text'>;
 
 export interface ForumComment {
   id: string;
@@ -185,7 +188,7 @@ export class SupabaseService {
     const client = await this.requireClient();
     const { data, error } = await client
       .from('live_updates')
-      .select('datum, uhrzeit, text')
+      .select('datum, uhrzeit, text, created_at')
       .order('datum', { ascending: false })
       .order('uhrzeit', { ascending: false })
       .limit(limit);
@@ -260,7 +263,7 @@ export class SupabaseService {
     }
   }
 
-  async createLiveUpdate(update: LiveUpdate): Promise<void> {
+  async createLiveUpdate(update: NewLiveUpdate): Promise<void> {
     const client = await this.requireClient();
     const { error } = await client.from('live_updates').insert(update);
     if (error) {

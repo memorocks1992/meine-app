@@ -17,6 +17,51 @@ describe('App', () => {
     expect(app).toBeTruthy();
   });
 
+  it('hides a live update at 48 hours and loads the next one', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-11-23T12:00:00Z'));
+    try {
+      const fixture = TestBed.createComponent(App);
+      const app = fixture.componentInstance;
+      Object.defineProperty(app, 'backendConfigured', { value: true });
+      const service = TestBed.inject(SupabaseService);
+      const update = { datum: '2026-11-21', uhrzeit: '12:00', text: 'First', created_at: '2026-11-21T12:00:01Z' };
+      const next = { datum: '2026-11-20', uhrzeit: '12:00', text: 'Second', created_at: '2026-11-22T12:00:00Z' };
+      const load = vi.spyOn(service, 'loadLiveUpdates').mockImplementation(async () =>
+        Date.now() < Date.parse(update.created_at) + 48 * 60 * 60 * 1000 ? [update] : [next],
+      );
+
+      await app['loadPublicLiveUpdate']();
+      expect(app['liveUpdates']()).toEqual([update]);
+      await vi.advanceTimersByTimeAsync(999);
+      expect(app['liveUpdates']()).toEqual([update]);
+      await vi.advanceTimersByTimeAsync(1);
+      expect(load.mock.calls.length).toBeGreaterThanOrEqual(2);
+      expect(app['liveUpdates']()).toEqual([next]);
+      fixture.destroy();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('does not show an expired live update returned by the backend', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-11-23T12:00:00Z'));
+    try {
+      const fixture = TestBed.createComponent(App);
+      const app = fixture.componentInstance;
+      Object.defineProperty(app, 'backendConfigured', { value: true });
+      vi.spyOn(TestBed.inject(SupabaseService), 'loadLiveUpdates').mockResolvedValue([{
+        datum: '2026-11-23', uhrzeit: '12:00', text: 'Expired', created_at: '2026-11-21T12:00:00Z',
+      }]);
+      await app['loadPublicLiveUpdate']();
+      expect(app['liveUpdates']()).toEqual([]);
+      fixture.destroy();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('lets visitors select and clear a ten-minute wait time without selecting one by default', () => {
     const fixture = TestBed.createComponent(App);
     const app = fixture.componentInstance;

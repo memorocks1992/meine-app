@@ -83,6 +83,7 @@
         } @else if (adminTab() === 'updates') {
           <section class="admin-workspace" aria-label="Manage live updates">
             <div class="admin-workspace-heading"><div><p class="eyebrow">COMMUNITY NOTICE</p><h3>Publish a live update</h3></div></div>
+            <p>Live updates expire 48 hours after publication and are deleted automatically.</p>
             <form #updateForm class="admin-form admin-update-form" (submit)="$event.preventDefault(); postLiveUpdate(updateDate.value, updateTime.value, updateMessage.value, updateForm)">
               <label><span>Datum</span><input #updateDate type="date" required /></label>
               <label><span>Uhrzeit</span><input #updateTime type="time" required /></label>
