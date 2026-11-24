@@ -434,6 +434,9 @@
               @if (!backendConfigured) {
                 <p class="form-error" role="status">Supabase is not configured yet. Your report cannot be sent.</p>
               }
+              @if (isGastronomy(club) && foodSchemaUnavailable()) {
+                <p class="form-error" role="status">Food reports are temporarily unavailable. Please try again later.</p>
+              }
 
               <fieldset class="report-field" [disabled]="reportStatus() === 'submitting'">
                 <legend>Wait time <span>{{ reportDraft().waitMinutes === null ? 'Not selected' : reportDraft().waitMinutes + ' min' }}</span></legend>
@@ -493,7 +496,7 @@
                   <button type="button" class="secondary-action" [disabled]="reportStatus() === 'submitting'" (click)="reportWarnings.set([])">No, let me correct it</button>
                 </div>
               } @else {
-                <button type="button" class="submit-report" [disabled]="!reportReady() || !backendConfigured || reportStatus() === 'submitting'" (click)="submitReport()">
+                <button type="button" class="submit-report" [disabled]="!reportReady() || !backendConfigured || (isGastronomy(club) && foodSchemaUnavailable()) || reportStatus() === 'submitting'" (click)="submitReport()">
                   @if (reportStatus() === 'submitting') { Checking… } @else { Submit report }
                 </button>
               }
@@ -510,7 +513,6 @@
 
             </section>
           }
-          @if (!isGastronomy(club)) {
           <section id="forum" class="forum-section" aria-labelledby="forum-title">
             <div class="section-heading">
               <div>
@@ -613,7 +615,6 @@
             }
             }
           </section>
-          }
         </article>
       } @else {
         <div class="empty-selection">

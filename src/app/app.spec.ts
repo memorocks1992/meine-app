@@ -156,6 +156,39 @@ describe('App', () => {
     fixture.destroy();
   });
 
+  it('loads, displays and posts to the selected food venue forum', async () => {
+    const fixture = TestBed.createComponent(App);
+    const app = fixture.componentInstance;
+    Object.defineProperty(app, 'backendConfigured', { value: true });
+    const service = TestBed.inject(SupabaseService);
+    vi.spyOn(service, 'loadWaitReports').mockResolvedValue([]);
+    const post = {
+      id: 'food-post', author_name: 'Visitor', body: 'Great food', created_at: '2026-11-24T10:00:00Z',
+      comments: [], like_count: 0, liked_by_visitor: false,
+    };
+    const loadForum = vi.spyOn(service, 'loadForumPosts').mockResolvedValue({ posts: [post], totalCount: 1 });
+    const createPost = vi.spyOn(service, 'createForumPost').mockResolvedValue();
+    const venue = app['clubs']().find((club) => club.id === 'rueyam-schoenhauser-allee')!;
+    app['setMapCategory']('gastronomy');
+    app['selectClub'](venue);
+    await vi.waitFor(() => expect(app['forumStatus']()).toBe('ready'));
+    fixture.detectChanges();
+    expect(loadForum).toHaveBeenCalledWith(venue.id, 1, 10);
+    const element = fixture.nativeElement as HTMLElement;
+    expect(element.querySelector('#forum-title')?.textContent).toContain('Rüyam Gemüse Kebab Forum');
+    element.querySelector<HTMLButtonElement>('.forum-consent-banner button')!.click();
+    fixture.detectChanges();
+    expect(element.querySelector('.forum-post-body')?.textContent).toContain('Great food');
+    const form = element.querySelector<HTMLFormElement>('.forum-compose')!;
+    await app['createForumPost'](venue.id, 'Visitor', 'Hello', form);
+    expect(createPost).toHaveBeenCalledWith(venue.id, 'Visitor', 'Hello');
+    expect(loadForum).toHaveBeenCalledTimes(2);
+    app['selectClub'](null);
+    fixture.detectChanges();
+    expect(element.querySelector('.forum-section')).toBeNull();
+    fixture.destroy();
+  });
+
   it('loads and submits restaurant wait reports without requiring a club event', async () => {
     const fixture = TestBed.createComponent(App);
     const app = fixture.componentInstance;
@@ -188,6 +221,51 @@ describe('App', () => {
     }));
     expect(app['reportStatus']()).toBe('success');
     fixture.destroy();
+  });
+
+  it('prevents Food reports when the database category column is missing', async () => {
+    const fixture = TestBed.createComponent(App);
+    const app = fixture.componentInstance;
+    Object.defineProperty(app, 'backendConfigured', { value: true });
+    const service = TestBed.inject(SupabaseService);
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(service, 'loadClubs').mockRejectedValue({ code: '42703', message: 'column clubs.category does not exist' });
+    const submit = vi.spyOn(service, 'submitReport');
+    try {
+      await app['loadPublicClubs']();
+      app['selectedClub'].set(app['clubs']().find((club) => club.id === 'mustafa-gemuese-kebap')!);
+      app['reportOpen'].set(true);
+      app['setWaitMinutes'](30);
+      fixture.detectChanges();
+      const element = fixture.nativeElement as HTMLElement;
+      expect(element.querySelector('.report-section')?.textContent).toContain('Food reports are temporarily unavailable');
+      expect(element.querySelector<HTMLButtonElement>('.report-section .submit-report')?.disabled).toBe(true);
+      await app['submitReport']();
+      expect(submit).not.toHaveBeenCalled();
+    } finally {
+      log.mockRestore();
+      fixture.destroy();
+    }
+  });
+
+  it('shows the cooldown message returned by Supabase for a Food report', async () => {
+    const fixture = TestBed.createComponent(App);
+    const app = fixture.componentInstance;
+    const service = TestBed.inject(SupabaseService);
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(service, 'getVisitorId').mockReturnValue('visitor');
+    vi.spyOn(service, 'submitReport').mockRejectedValue({
+      code: 'P0001', message: 'Please wait 10 minutes before reporting this club again.',
+    });
+    try {
+      app['selectedClub'].set(app['clubs']().find((club) => club.id === 'mustafa-gemuese-kebap')!);
+      app['setWaitMinutes'](30);
+      await app['submitReport']();
+      expect(app['reportError']()).toContain('Please wait 10 minutes before reporting this location again.');
+    } finally {
+      log.mockRestore();
+      fixture.destroy();
+    }
   });
 
   it('accepts a whole euro amount of at most two digits and rejects invalid input', () => {

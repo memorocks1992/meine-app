@@ -341,6 +341,7 @@ export class App implements OnDestroy {
 
   protected readonly selectedClub = signal<Club | null>(null);
   protected readonly selectedMapCategory = signal<'club' | 'gastronomy'>('club');
+  protected readonly foodSchemaUnavailable = signal(false);
   protected readonly partyNight = signal(getPartyNight(new Date()));
   private readonly currentTime = signal(new Date());
   protected readonly todayWeekday = computed(() =>
@@ -704,6 +705,11 @@ export class App implements OnDestroy {
     const club = this.selectedClub();
     const isGastronomy = this.isGastronomy(club);
     const currentEvent = getCurrentClubEvent(this.clubEvents(), new Date());
+    if (isGastronomy && this.foodSchemaUnavailable()) {
+      this.reportStatus.set('error');
+      this.reportError.set('Food reports are temporarily unavailable. Please try again later.');
+      return;
+    }
     if (!club || !this.reportReady() || this.reportStatus() === 'submitting') {
       return;
     }
@@ -1379,6 +1385,7 @@ export class App implements OnDestroy {
     }
     try {
       const clubs = await this.supabase.loadClubs();
+      this.foodSchemaUnavailable.set(false);
       this.clubs.set(clubs.map((club) => ({
         id: club.slug,
         name: club.name,
@@ -1394,6 +1401,11 @@ export class App implements OnDestroy {
       this.refreshClubIcons();
     } catch (error) {
       console.error('Unable to load public clubs.', error);
+      if (typeof error === 'object' && error !== null && 'code' in error && error.code === '42703'
+        && 'message' in error && typeof error.message === 'string'
+        && error.message.includes('clubs.category')) {
+        this.foodSchemaUnavailable.set(true);
+      }
     }
   }
 
@@ -1563,6 +1575,15 @@ export class App implements OnDestroy {
     if (error instanceof Error) {
       return error.message;
     }
+    if (typeof error === 'object' && error !== null && 'code' in error && error.code === 'P0001'
+      && 'message' in error && typeof error.message === 'string') {
+      if (error.message === 'Please wait 10 minutes before reporting this club again.') {
+        return 'Please wait 10 minutes before reporting this location again.';
+      }
+      if (error.message === 'Reports are only accepted while a scheduled event is running.') {
+        return 'Reports are currently unavailable for this location.';
+      }
+    }
     return 'An unexpected error occurred. Please try again.';
   }
 
@@ -1662,15 +1683,13 @@ export class App implements OnDestroy {
       this.forumTotalCount.set(0);
       this.forumError.set(null);
       this.forumNotice.set(null);
-      this.forumStatus.set(club && !this.isGastronomy(club) ? 'loading' : 'idle');
+      this.forumStatus.set(club ? 'loading' : 'idle');
     }
     this.selectedClub.set(club);
     this.refreshClubIcons();
     if (club) {
       void this.loadClubData(club);
-      if (!this.isGastronomy(club)) {
-        void this.loadForum(club.id);
-      }
+      void this.loadForum(club.id);
     } else {
       this.clubDataStatus.set('idle');
     }
