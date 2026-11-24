@@ -47,6 +47,25 @@ describe('layoutMapLabels', () => {
     expect(positions.get('other')).toBeNull();
   });
 
+  it('keeps club labels in place when a club is selected or deselected', () => {
+    const labels: MapLabel[] = ['first', 'second', 'third'].map((id, index) => ({
+      id,
+      x: 150 + index * 6,
+      y: 160 + index * 4,
+      width: 100 + index * 12,
+      height: 24,
+      preferredX: index * 8,
+      preferredY: 0,
+      selected: false,
+    }));
+    const initial = layoutMapLabels(labels, 400, 390, 4, false, 40);
+    const selected = layoutMapLabels(labels.map((label) => ({
+      ...label, selected: label.id === 'second',
+    })), 400, 390, 4, false, 40);
+
+    expect(selected).toEqual(initial);
+  });
+
   it('respects a larger requested gap between food labels', () => {
     const labels: MapLabel[] = ['first', 'second'].map((id) => ({
       id, x: 180, y: 180, width: 120, height: 24, preferredX: 0, preferredY: -58, selected: false,

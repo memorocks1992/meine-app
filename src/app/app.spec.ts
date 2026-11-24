@@ -513,13 +513,13 @@ describe('App', () => {
     expect(getComputedStyle(nightBar!).position).toBe('static');
   });
 
-  it('should show the offline live-update state when there are no updates', async () => {
+  it('should show a clear live-update empty state when there are no updates', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
 
     expect(compiled.querySelector('.ticker')?.classList.contains('offline')).toBe(true);
-    expect(compiled.querySelector('.ticker p')?.textContent).toContain('Offline. No current updates');
+    expect(compiled.querySelector('.ticker p')?.textContent).toContain('No new updates right now.');
     expect(compiled.querySelector('.live-indicator-dot')).not.toBeNull();
   });
 
@@ -556,7 +556,7 @@ describe('App', () => {
       id: 'club-update', datum: '2026-11-25', uhrzeit: '20:00', text: 'Club update', created_at: '2026-11-25T19:00:00Z', category: 'club',
     }]);
     fixture.detectChanges();
-    expect(compiled.querySelector('.ticker p')?.textContent).toContain('Offline. No current updates');
+    expect(compiled.querySelector('.ticker p')?.textContent).toContain('No new updates right now.');
     fixture.destroy();
   });
 

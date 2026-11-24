@@ -1321,11 +1321,11 @@ export class App implements OnDestroy {
         return 'Connect Supabase to see reports';
       case 'ready': {
         const metrics = this.clubMetrics();
-        if (!metrics || metrics.source === 'none') return 'No data yet';
+        if (!metrics || metrics.source === 'none') return 'No reports for this event yet';
         return `${metrics.count} reports for this event`;
       }
       default:
-        return 'No data yet';
+        return 'No reports for this event yet';
     }
   }
 
@@ -1779,7 +1779,7 @@ export class App implements OnDestroy {
       }];
     });
     const isFood = this.selectedMapCategory() === 'gastronomy';
-    const positions = layoutMapLabels(labels, size.x, size.y, isFood ? 14 : 4, !isFood, isFood ? 34 : 40);
+    const positions = layoutMapLabels(labels, size.x, size.y, isFood ? 14 : 4, false, isFood ? 34 : 40);
     for (const label of labels) {
       const marker = this.markers.get(label.id);
       const element = marker?.getElement()?.querySelector<HTMLElement>('.club-map-label');

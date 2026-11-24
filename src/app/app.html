@@ -177,7 +177,6 @@
         <p class="eyebrow">ALL DETAILS APPLY TODAY</p>
         <h1>{{ partyNight().date }}</h1>
       </div>
-      <p class="night-turn"><strong>{{ todayWeekday() }}</strong></p>
     </section>
   }
 
@@ -218,7 +217,7 @@
       <div class="ticker-icon" aria-hidden="true"><span class="live-indicator-dot"></span></div>
       <div>
         <h2 id="ticker-title">Live updates</h2>
-        <p>{{ activeLiveUpdate()?.text ?? 'Offline. No current updates' }}</p>
+        <p>{{ activeLiveUpdate()?.text ?? 'No new updates right now.' }}</p>
         @if (activeLiveUpdate(); as update) {
           <span class="ticker-time">{{ formatLiveUpdateDate(update.datum) }} · {{ formatLiveUpdateTime(update.uhrzeit) }}</span>
         }
@@ -248,7 +247,7 @@
             @if (!isGastronomy(club)) {
               <div class="event-value">
                 <span class="eyebrow"><span aria-hidden="true">✦</span>TONIGHT</span>
-                <strong>{{ tonightEvent()?.description ?? 'No event listed yet' }}</strong>
+                <strong>{{ tonightEvent()?.description ?? 'No event details for tonight' }}</strong>
                 @if (tonightEvent()?.djs; as djs) {
                   <span class="event-djs">DJs: {{ djs }}</span>
                 }
@@ -524,8 +523,12 @@
             <p class="section-description">Share tips, ask questions and chat with other visitors to {{ club.name }}. Please respect our policies and others.</p>
             @if (!forumDisclaimerAccepted()) {
               <div class="forum-consent-banner" role="note">
-                <p>Posts and replies are public, user-submitted and not pre-verified or endorsed by Queue Berlin. You are responsible for what you publish; do not post private or sensitive information. Report unlawful or harmful content using the “Report” button. Posts and replies are automatically deleted after 24 hours; you can also request earlier removal.</p>
-                <button type="button" class="secondary-action" aria-label="OK, bestätigen" (click)="acknowledgeForumDisclaimer()">👌</button>
+                <span class="forum-notice-icon" aria-hidden="true">i</span>
+                <div class="forum-notice-content">
+                  <h3>Before you post</h3>
+                  <p>Posts and replies are public, community-submitted, and not pre-reviewed or endorsed by Queue Berlin. Please don’t share private or sensitive information. Use “Report” to flag unlawful or harmful content. <span class="forum-expiry-inline">Posts and replies are automatically deleted after 24 hours.</span></p>
+                </div>
+                <button type="button" class="secondary-action" aria-label="OK, got it" (click)="acknowledgeForumDisclaimer()">OK</button>
               </div>
             } @else {
 
@@ -545,7 +548,7 @@
             } @else if (forumStatus() === 'error') {
               <p class="forum-empty">Forum posts could not be loaded. Please try again later.</p>
             } @else if (forumPosts().length === 0) {
-              <p class="forum-empty">No posts yet. Start the conversation!</p>
+              <p class="forum-empty">No posts for this venue yet.</p>
             } @else {
               <div class="forum-posts">
                 @for (post of forumPosts(); track post.id) {
