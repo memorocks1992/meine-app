@@ -608,12 +608,17 @@ main {
 
 .restaurant-menu {
   margin-top: 14px;
-  border: 1px solid #393241;
+  border: 1px solid #7952a8;
   border-radius: 14px;
   padding: 18px;
   background:
-    radial-gradient(ellipse at 100% 0, rgb(245 187 85 / 8%), transparent 50%),
-    #17141e;
+    radial-gradient(ellipse at 15% 0, rgb(188 135 255 / 24%), transparent 55%),
+    linear-gradient(155deg, #302342 0%, #21182e 55%, #191421 100%);
+  box-shadow:
+    0 10px 0 #100c17,
+    0 16px 28px rgb(0 0 0 / 35%),
+    inset 0 1px rgb(255 255 255 / 18%),
+    inset 0 -2px rgb(0 0 0 / 24%);
 }
 
 .restaurant-menu-heading {
@@ -625,8 +630,12 @@ main {
 
 .restaurant-menu-heading h3 {
   margin: 0;
-  color: #f7f4fb;
+  color: #f7f0ff;
   font-size: 18px;
+}
+
+.restaurant-menu .eyebrow {
+  color: #d3b2ff;
 }
 
 .restaurant-menu-icon {
@@ -634,10 +643,13 @@ main {
   width: 34px;
   height: 34px;
   place-items: center;
-  border: 1px solid rgb(245 187 85 / 35%);
-  border-radius: 10px;
-  background: rgb(245 187 85 / 9%);
-  color: #f5bb55;
+  border: 1px solid rgb(214 181 255 / 55%);
+  border-radius: 50%;
+  background: linear-gradient(145deg, #65458b, #39254f);
+  box-shadow:
+    0 3px 0 #20152c,
+    inset 0 1px rgb(255 255 255 / 24%);
+  font-size: 17px;
 }
 
 .restaurant-menu ul {
@@ -650,16 +662,28 @@ main {
 }
 
 .restaurant-menu li {
+  display: flex;
   position: relative;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
   padding-left: 17px;
-  color: #e7e1eb;
+  color: #e9dff5;
   font-size: 13px;
+}
+
+.restaurant-menu-price {
+  flex: 0 0 auto;
+  color: #d3b2ff;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 .restaurant-menu li::before {
   position: absolute;
   left: 0;
-  color: #f5bb55;
+  color: #c99aff;
   content: "·";
   font-size: 21px;
   line-height: 14px;
@@ -668,6 +692,7 @@ main {
 .restaurant-menu .metric-note {
   display: block;
   margin-bottom: 12px;
+  color: #b7a9c7;
 }
 
 .food-map-anchor {

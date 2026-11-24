@@ -82,7 +82,7 @@
           </section>
         } @else if (adminTab() === 'updates') {
           <section class="admin-workspace" aria-label="Manage live updates">
-            <p>Publish multiple updates independently for Clubs and Gastronomie. The website shows the latest update for the selected category. Updates expire 48 hours after publication.</p>
+            <p>Publish multiple updates independently for Clubs and Food. The website shows the latest update for the selected category. Updates expire 48 hours after publication.</p>
             <section class="admin-update-category" aria-labelledby="club-live-update-title">
               <div class="admin-workspace-heading"><div><p class="eyebrow">CLUBS</p><h3 id="club-live-update-title">Club live update</h3></div></div>
               <form #clubUpdateForm class="admin-form admin-update-form" (submit)="$event.preventDefault(); postLiveUpdate('club', clubUpdateDate.value, clubUpdateTime.value, clubUpdateMessage.value, clubUpdateForm)">
@@ -99,19 +99,19 @@
               } @empty { <p class="admin-empty">No club updates.</p> }
             </section>
             <section class="admin-update-category" aria-labelledby="gastronomy-live-update-title">
-              <div class="admin-workspace-heading"><div><p class="eyebrow">GASTRONOMIE</p><h3 id="gastronomy-live-update-title">Gastronomy live update</h3></div></div>
+              <div class="admin-workspace-heading"><div><p class="eyebrow">FOOD</p><h3 id="gastronomy-live-update-title">Food live update</h3></div></div>
               <form #gastronomyUpdateForm class="admin-form admin-update-form" (submit)="$event.preventDefault(); postLiveUpdate('gastronomy', gastronomyUpdateDate.value, gastronomyUpdateTime.value, gastronomyUpdateMessage.value, gastronomyUpdateForm)">
                 <label><span>Datum</span><input #gastronomyUpdateDate type="date" required /></label>
                 <label><span>Uhrzeit</span><input #gastronomyUpdateTime type="time" required /></label>
-                <label class="admin-update-message"><span>Text</span><input #gastronomyUpdateMessage maxlength="240" required placeholder="Kurze Nachricht für Gastronomie" /></label>
-                <button type="submit" class="admin-submit" [disabled]="adminBusy()">{{ adminBusy() ? 'Publishing…' : 'Publish gastronomy update' }}</button>
+                <label class="admin-update-message"><span>Text</span><input #gastronomyUpdateMessage maxlength="240" required placeholder="Kurze Nachricht für Food" /></label>
+                <button type="submit" class="admin-submit" [disabled]="adminBusy()">{{ adminBusy() ? 'Publishing…' : 'Publish food update' }}</button>
               </form>
               @for (update of adminLiveUpdatesForCategory('gastronomy'); track update.id) {
                 <article class="admin-list-item">
                   <div class="admin-list-copy"><strong>{{ update.text }}</strong><span>{{ formatLiveUpdateDate(update.datum) }} · {{ formatLiveUpdateTime(update.uhrzeit) }}</span></div>
                   <button type="button" class="secondary-action" [disabled]="adminBusy()" (click)="deleteLiveUpdate(update)">Delete</button>
                 </article>
-              } @empty { <p class="admin-empty">No gastronomy updates.</p> }
+              } @empty { <p class="admin-empty">No food updates.</p> }
             </section>
           </section>
         } @else if (adminTab() === 'reports') {
@@ -203,7 +203,7 @@
 
       <nav class="map-category-filter" aria-label="Map category">
         <button type="button" [class.active]="selectedMapCategory() === 'club'" [attr.aria-pressed]="selectedMapCategory() === 'club'" (click)="setMapCategory('club')">Clubs</button>
-        <button type="button" [class.active]="selectedMapCategory() === 'gastronomy'" [attr.aria-pressed]="selectedMapCategory() === 'gastronomy'" (click)="setMapCategory('gastronomy')">Gastronomie</button>
+        <button type="button" [class.active]="selectedMapCategory() === 'gastronomy'" [attr.aria-pressed]="selectedMapCategory() === 'gastronomy'" (click)="setMapCategory('gastronomy')">Food</button>
       </nav>
 
       <div class="map-frame">
@@ -265,18 +265,25 @@
               <div class="restaurant-menu-heading">
                 <div>
                   <p class="eyebrow">MENÜ-HIGHLIGHTS</p>
-                  <h3 id="restaurant-menu-title">Auf der Karte</h3>
+                  <h3 id="restaurant-menu-title">On the menu</h3>
                 </div>
-                <span class="restaurant-menu-icon" aria-hidden="true">✳</span>
+                <span class="restaurant-menu-icon" aria-hidden="true">🍴</span>
               </div>
               <ul>
-                @for (item of restaurantMenuHighlights(club.id); track item) {
-                  <li>{{ item }}</li>
+                @for (item of restaurantMenuHighlights(club.id); track item.name) {
+                  <li>
+                    <span>{{ item.name }}</span>
+                    @if (item.price) {
+                      <strong class="restaurant-menu-price">{{ item.price }}</strong>
+                    }
+                  </li>
                 }
               </ul>
-              <p class="metric-note">Aus online veröffentlichten Speisekarten zusammengestellt. Angebot und Preise können sich ändern.</p>
+              <p class="metric-note">Prices are online or community-reported examples and may change. Delivery prices may differ in-store.</p>
               @if (club.menu_url) {
-                <a class="maps-link" [href]="club.menu_url" target="_blank" rel="noopener noreferrer">Speisekarte / Details ansehen ↗</a>
+                <a class="maps-link" [href]="club.menu_url" target="_blank" rel="noopener noreferrer">
+                  <span aria-hidden="true">↗</span> View menu / details
+                </a>
               }
             </section>
           }
@@ -632,13 +639,13 @@
         <h2>Data we process and why</h2>
         <p>When you visit the website, the hosting provider may process technical connection data needed to deliver, maintain and secure the service, such as your IP address, the time of the request, the requested page, and browser or device information. The applicable retention period for server logs must be confirmed with the hosting provider.</p>
         <p>The website creates a random visitor ID and stores it in your browser's local storage. It is sent to Supabase with reports, forum posts and likes to associate these actions with the same browser and limit repeated club reports. This visitor ID is separate from the anonymous analytics data and is not used to profile visitors. The ID does not itself contain your name, but it is a pseudonymous identifier and should not be considered anonymous. You can remove it by clearing this website's stored data in your browser; this may prevent us from associating your previous likes with you.</p>
-        <p>For a club report, we process the information you select about waiting time, likelihood of entry, atmosphere and price, as well as the club, event, submission time and visitor ID. For a gastronomy report, we process the reported queue time, location, submission time and visitor ID. Reports are used to calculate current wait-time information. For forum posts and replies, we process and publish the display name you choose, the text and the time of submission. Posts and replies are publicly visible while available. Please do not publish sensitive or other personal information about yourself or anyone else. For anonymous analytics, we do not collect names, email addresses, account data, or other personal identifiers.</p>
+        <p>For a club report, we process the information you select about waiting time, likelihood of entry, atmosphere and price, as well as the club, event, submission time and visitor ID. For a food venue report, we process the reported queue time, location, submission time and visitor ID. Reports are used to calculate current wait-time information. For forum posts and replies, we process and publish the display name you choose, the text and the time of submission. Posts and replies are publicly visible while available. Please do not publish sensitive or other personal information about yourself or anyone else. For anonymous analytics, we do not collect names, email addresses, account data, or other personal identifiers.</p>
         <p>Where applicable, processing is necessary to provide the features you request (Article 6(1)(b) GDPR) and is based on our legitimate interests in operating and securing the service and preventing abuse (Article 6(1)(f) GDPR). The specific legal basis and balancing assessment should be confirmed before launch.</p>
         <h2>Service providers and external content</h2>
         <p>The website is hosted by Render. Reports, forum content and administration features are processed through Supabase. Anonymous visitor analytics are processed through Umami. When the map loads, your browser also requests map tiles from OpenStreetMap servers. The relevant provider receives technically necessary connection data, including your IP address. See <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap's information</a> for more details.</p>
         <p>Render, Supabase and Umami may process data as part of their services and according to their respective settings. Before launch, the data processing agreements, configured storage regions, any transfers to countries outside the EEA and the applicable safeguards should be checked.</p>
         <h2>How long we keep data</h2>
-        <p>Forum posts and replies are automatically deleted after 24 hours; the cleanup job is scheduled to run every five minutes. Club reports are automatically deleted after their event ends, and gastronomy queue reports are deleted after the Berlin calendar day on which they were submitted. The cleanup job runs every five minutes, so deletion may be delayed briefly. The provider's technical backups may be subject to different retention periods. Reports about forum content are not automatically deleted and remain stored until reviewed or deleted by the administrator.</p>
+        <p>Forum posts and replies are automatically deleted after 24 hours; the cleanup job is scheduled to run every five minutes. Club reports are automatically deleted after their event ends, and food venue queue reports are deleted after the Berlin calendar day on which they were submitted. The cleanup job runs every five minutes, so deletion may be delayed briefly. The provider's technical backups may be subject to different retention periods. Reports about forum content are not automatically deleted and remain stored until reviewed or deleted by the administrator.</p>
         <h2>Your privacy rights</h2>
         <p>Subject to applicable legal requirements, you may request access to, correction or deletion of your personal data, or restriction of its processing; object to processing based on legitimate interests; and, where applicable, request data portability or withdraw consent. Contact us at <a href="mailto:info.queue@web.de">info.queue@web.de</a>. Please describe your request so we can identify the relevant data. Where necessary, we may ask for reasonable information to verify your identity.</p>
         <p>You also have the right to lodge a complaint with a data protection supervisory authority. In Berlin, this is the <a href="https://www.datenschutz-berlin.de/" target="_blank" rel="noopener noreferrer">Berlin Commissioner for Data Protection and Freedom of Information</a>. These notices are based in particular on the <a href="https://eur-lex.europa.eu/eli/reg/2016/679/oj?locale=en" target="_blank" rel="noopener noreferrer">General Data Protection Regulation (GDPR)</a>.</p>

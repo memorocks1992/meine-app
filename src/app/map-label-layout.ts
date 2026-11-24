@@ -20,13 +20,23 @@ export function layoutMapLabels(
   labels: MapLabel[],
   width: number,
   height: number,
+  gap = 4,
+  prioritizeSelected = true,
+  markerSize = 0,
 ): Map<string, readonly [number, number] | null> {
   const padding = 6;
-  const gap = 4;
-  const occupied: Rectangle[] = [];
+  const occupied: Rectangle[] = markerSize > 0
+    ? labels.map(({ x, y }) => ({
+      left: x - markerSize / 2,
+      right: x + markerSize / 2,
+      top: y - markerSize / 2,
+      bottom: y + markerSize / 2,
+    }))
+    : [];
   const result = new Map<string, readonly [number, number] | null>();
   const ordered = [...labels].sort((a, b) =>
-    Number(b.selected) - Number(a.selected) || b.width - a.width || a.id.localeCompare(b.id),
+    (prioritizeSelected ? Number(b.selected) - Number(a.selected) : 0)
+    || b.width - a.width || a.id.localeCompare(b.id),
   );
 
   for (const label of ordered) {

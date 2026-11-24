@@ -38,11 +38,30 @@ const MAX_UPCOMING_EVENT_DAYS = 100;
 const WAIT_REPORT_FRESHNESS_MS = 60 * 60 * 1000;
 const EVENT_PRICE_FRESHNESS_MS = 48 * 60 * 60 * 1000;
 const ENTRY_RANGES = ['Up to €10', '€10–15', '€15–20', '€20–30', '€30+'];
-const RESTAURANT_MENU_HIGHLIGHTS: Readonly<Record<string, readonly string[]>> = {
-  'zagros-gemuesekebap': ['Hähnchen-Gemüsekebap', 'Veggie-Gemüsekebap', 'Dürüm & Wraps', 'Kebap-Bowls'],
-  'mustafa-gemuese-kebap': ['Gemüse Kebap mit Hähnchen', 'Veggie Kebap', 'Dürüm', 'Kebap mit Grillgemüse'],
-  'oggis-gemuesekebab': ['Chicken Gemüse Kebab', 'Veggie Kebab', 'Käse-Sandwich', 'Wraps'],
-  'nhas-city-chicken': ['Halbes Hähnchen mit Beilagen', 'Crispy Wings', 'Chicken Bites', 'Burger & Wraps'],
+interface RestaurantMenuHighlight {
+  name: string;
+  price?: string;
+}
+
+const RESTAURANT_MENU_HIGHLIGHTS: Readonly<Record<string, readonly RestaurantMenuHighlight[]>> = {
+  'zagros-gemuesekebap': [
+    { name: 'Chicken & veggie kebab, dürüm and bowls' },
+    { name: 'Selected Uber Eats menu items', price: '€10.50–€12.50' },
+  ],
+  'mustafa-gemuese-kebap': [
+    { name: 'Vegetable kebab with chicken, veggie kebab, dürüm & grilled vegetables' },
+    { name: 'Döner kebab (reported 18 May 2026)', price: '€7.50' },
+  ],
+  'oggis-gemuesekebab': [
+    { name: 'Chicken & veggie kebab, cheese sandwich and wraps' },
+    { name: 'Döner kebab (reported 2 June 2026)', price: '€7.50' },
+  ],
+  'nhas-city-chicken': [
+    { name: 'Half-chicken menu: Classic €15.90 · Spezial €17.90' },
+    { name: 'Crispy Wings (6 pieces)', price: '€7.90' },
+    { name: 'Chicken bites (6 pieces)', price: '€8.90' },
+    { name: 'Chicken wraps', price: 'from €6.90' },
+  ],
 };
 
 function priceCategory(value: string | null): number {
@@ -431,6 +450,7 @@ export class App implements OnDestroy {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly supabase = inject(SupabaseService);
   private readonly markers = new Map<string, Leaflet.Marker>();
+  private readonly foodConnectors = new Map<string, Leaflet.Polyline>();
   private readonly labelOffsets = new Map<string, readonly [number, number]>([
     ['berghain', [90, -80]],
     ['sisyphos', [160, 20]],
@@ -587,7 +607,7 @@ export class App implements OnDestroy {
     return club?.category === 'gastronomy';
   }
 
-  protected restaurantMenuHighlights(clubId: string): readonly string[] {
+  protected restaurantMenuHighlights(clubId: string): readonly RestaurantMenuHighlight[] {
     return RESTAURANT_MENU_HIGHLIGHTS[clubId] ?? [];
   }
 
@@ -1145,7 +1165,7 @@ export class App implements OnDestroy {
         category,
       });
       form.reset();
-      this.adminNotice.set(`${category === 'gastronomy' ? 'Gastronomy' : 'Clubs'} live update published.`);
+      this.adminNotice.set(`${category === 'gastronomy' ? 'Food' : 'Clubs'} live update published.`);
       await this.loadAdminDashboard();
       await this.loadPublicLiveUpdate();
     } catch (error) {
@@ -1704,9 +1724,11 @@ export class App implements OnDestroy {
       const element = marker?.getElement()?.querySelector<HTMLElement>('.club-map-label');
       if (!marker || !element) return [];
       const point = map.latLngToContainerPoint(marker.getLatLng());
-      const [preferredX, preferredY] = this.compactLayout
-        ? this.compactLabelOffsets.get(club.id) ?? [0, 0]
-        : this.labelOffsets.get(club.id) ?? [0, 0];
+      const [preferredX, preferredY] = this.isGastronomy(club)
+        ? [(point.x < size.x / 2 ? -1 : 1) * (element.offsetWidth / 2 + 31), 0]
+        : this.compactLayout
+          ? this.compactLabelOffsets.get(club.id) ?? [0, 0]
+          : this.labelOffsets.get(club.id) ?? [0, 0];
       return [{
         id: club.id,
         x: point.x,
@@ -1718,7 +1740,8 @@ export class App implements OnDestroy {
         selected: club.id === this.selectedClub()?.id,
       }];
     });
-    const positions = layoutMapLabels(labels, size.x, size.y);
+    const isFood = this.selectedMapCategory() === 'gastronomy';
+    const positions = layoutMapLabels(labels, size.x, size.y, isFood ? 14 : 4, !isFood, isFood ? 34 : 0);
     for (const label of labels) {
       const marker = this.markers.get(label.id);
       const element = marker?.getElement()?.querySelector<HTMLElement>('.club-map-label');
