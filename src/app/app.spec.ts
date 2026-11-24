@@ -25,10 +25,12 @@ describe('App', () => {
       const app = fixture.componentInstance;
       Object.defineProperty(app, 'backendConfigured', { value: true });
       const service = TestBed.inject(SupabaseService);
-      const update = { datum: '2026-11-21', uhrzeit: '12:00', text: 'First', created_at: '2026-11-21T12:00:01Z' };
-      const next = { datum: '2026-11-20', uhrzeit: '12:00', text: 'Second', created_at: '2026-11-22T12:00:00Z' };
-      const load = vi.spyOn(service, 'loadLiveUpdates').mockImplementation(async () =>
-        Date.now() < Date.parse(update.created_at) + 48 * 60 * 60 * 1000 ? [update] : [next],
+      const update = { id: 'first', datum: '2026-11-21', uhrzeit: '12:00', text: 'First', created_at: '2026-11-21T12:00:01Z', category: 'club' as const };
+      const next = { id: 'second', datum: '2026-11-20', uhrzeit: '12:00', text: 'Second', created_at: '2026-11-22T12:00:00Z', category: 'club' as const };
+      const load = vi.spyOn(service, 'loadLiveUpdates').mockImplementation(async (_limit, category) =>
+        category === 'club'
+          ? Date.now() < Date.parse(update.created_at) + 48 * 60 * 60 * 1000 ? [update] : [next]
+          : [],
       );
 
       await app['loadPublicLiveUpdate']();
@@ -52,7 +54,7 @@ describe('App', () => {
       const app = fixture.componentInstance;
       Object.defineProperty(app, 'backendConfigured', { value: true });
       vi.spyOn(TestBed.inject(SupabaseService), 'loadLiveUpdates').mockResolvedValue([{
-        datum: '2026-11-23', uhrzeit: '12:00', text: 'Expired', created_at: '2026-11-21T12:00:00Z',
+        id: 'expired', datum: '2026-11-23', uhrzeit: '12:00', text: 'Expired', created_at: '2026-11-21T12:00:00Z',
       }]);
       await app['loadPublicLiveUpdate']();
       expect(app['liveUpdates']()).toEqual([]);
@@ -90,6 +92,68 @@ describe('App', () => {
     fixture.detectChanges();
     expect(app['reportDraft']().waitMinutes).toBeNull();
     expect(app['reportReady']()).toBe(false);
+    fixture.destroy();
+  });
+
+  it('shows restaurant menu and wait-time reporting without club-only details', () => {
+    const fixture = TestBed.createComponent(App);
+    const app = fixture.componentInstance;
+    app['selectedClub'].set({
+      id: 'nhas-city-chicken', name: 'Nhas City Chicken', district: 'Mitte',
+      address: 'Torstraße 125, 10119 Berlin', latitude: 52.5298592, longitude: 13.4004233,
+      color: '#f5bb55', category: 'gastronomy', menu_url: 'https://citychickennhas.de/menu',
+    });
+    app['clubDataStatus'].set('ready');
+    app['reportOpen'].set(true);
+    fixture.detectChanges();
+    const element = fixture.nativeElement as HTMLElement;
+
+    expect(element.querySelector('.night-bar')).toBeNull();
+    expect(element.querySelector('.event-value')).toBeNull();
+    expect(element.querySelector('.club-metrics')).toBeNull();
+    expect(element.querySelector('.restaurant-menu')?.textContent).toContain('Crispy Wings');
+    expect(element.querySelector('input[aria-label="Wait time in minutes"]')).not.toBeNull();
+    expect(element.querySelector('input[aria-label="Door Odds from 1 to 10"]')).toBeNull();
+    expect(element.querySelector('#entry-price')).toBeNull();
+    expect(app['reportReady']()).toBe(false);
+    app['reportDraft'].update((draft) => ({ ...draft, mood: 8 }));
+    expect(app['reportReady']()).toBe(false);
+    app['setWaitMinutes'](20);
+    expect(app['reportReady']()).toBe(true);
+    fixture.destroy();
+  });
+
+  it('loads and submits restaurant wait reports without requiring a club event', async () => {
+    const fixture = TestBed.createComponent(App);
+    const app = fixture.componentInstance;
+    Object.defineProperty(app, 'backendConfigured', { value: true });
+    const service = TestBed.inject(SupabaseService);
+    vi.spyOn(service, 'loadWaitReports').mockResolvedValue([]);
+    const loadEvents = vi.spyOn(service, 'loadClubEvents').mockResolvedValue([]);
+    vi.spyOn(service, 'getVisitorId').mockReturnValue('visitor');
+    const submit = vi.spyOn(service, 'submitReport').mockResolvedValue();
+    const restaurant = {
+      id: 'mustafa-gemuese-kebap', name: 'Mustafa’s Gemüse Kebap', district: 'Kreuzberg',
+      address: 'Mehringdamm 33, 10961 Berlin', latitude: 52.493485, longitude: 13.3885619,
+      color: '#f5bb55', category: 'gastronomy' as const,
+      menu_url: 'https://speisekarte.menu/restaurants/berlin/mustafas-gemuese-kebap-4/menu',
+    };
+    app['selectedClub'].set(restaurant);
+    app['clubDataStatus'].set('ready');
+    app['reportOpen'].set(true);
+    app['setWaitMinutes'](30);
+
+    await app['submitReport']();
+
+    expect(loadEvents).not.toHaveBeenCalled();
+    expect(submit).toHaveBeenCalledWith(expect.objectContaining({
+      club_slug: restaurant.id,
+      wait_minutes: 30,
+      entry_chance: null,
+      mood: null,
+      entry_range: null,
+    }));
+    expect(app['reportStatus']()).toBe('success');
     fixture.destroy();
   });
 
@@ -346,6 +410,29 @@ describe('App', () => {
     expect(compiled.querySelector('.ticker')?.classList.contains('offline')).toBe(true);
     expect(compiled.querySelector('.ticker p')?.textContent).toContain('Offline. No current updates');
     expect(compiled.querySelector('.live-indicator-dot')).not.toBeNull();
+  });
+
+  it('should show the live update for the selected map category only', async () => {
+    const fixture = TestBed.createComponent(App);
+    await fixture.whenStable();
+    const app = fixture.componentInstance;
+    app['liveUpdates'].set([
+      { id: 'club-update', datum: '2026-11-25', uhrzeit: '20:00', text: 'Club update', created_at: '2026-11-25T19:00:00Z', category: 'club' },
+      { id: 'food-update', datum: '2026-11-25', uhrzeit: '20:00', text: 'Food update', created_at: '2026-11-25T19:00:00Z', category: 'gastronomy' },
+    ]);
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+
+    expect(compiled.querySelector('.ticker p')?.textContent).toContain('Club update');
+    app['setMapCategory']('gastronomy');
+    fixture.detectChanges();
+    expect(compiled.querySelector('.ticker p')?.textContent).toContain('Food update');
+    app['liveUpdates'].set([{
+      id: 'club-update', datum: '2026-11-25', uhrzeit: '20:00', text: 'Club update', created_at: '2026-11-25T19:00:00Z', category: 'club',
+    }]);
+    fixture.detectChanges();
+    expect(compiled.querySelector('.ticker p')?.textContent).toContain('Offline. No current updates');
+    fixture.destroy();
   });
 
   it('should show a dismissible community information banner', async () => {

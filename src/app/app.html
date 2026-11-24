@@ -82,22 +82,37 @@
           </section>
         } @else if (adminTab() === 'updates') {
           <section class="admin-workspace" aria-label="Manage live updates">
-            <div class="admin-workspace-heading"><div><p class="eyebrow">COMMUNITY NOTICE</p><h3>Publish a live update</h3></div></div>
-            <p>Live updates expire 48 hours after publication and are deleted automatically.</p>
-            <form #updateForm class="admin-form admin-update-form" (submit)="$event.preventDefault(); postLiveUpdate(updateDate.value, updateTime.value, updateMessage.value, updateForm)">
-              <label><span>Datum</span><input #updateDate type="date" required /></label>
-              <label><span>Uhrzeit</span><input #updateTime type="time" required /></label>
-              <label class="admin-update-message"><span>Text</span><input #updateMessage maxlength="240" required placeholder="Kurze Nachricht für Besucher" /></label>
-              <button type="submit" class="admin-submit" [disabled]="adminBusy()">{{ adminBusy() ? 'Publishing…' : 'Publish update' }}</button>
-            </form>
-            <div class="admin-list">
-              @for (update of adminLiveUpdates(); track update.datum + update.uhrzeit + update.text) {
+            <p>Publish multiple updates independently for Clubs and Gastronomie. The website shows the latest update for the selected category. Updates expire 48 hours after publication.</p>
+            <section class="admin-update-category" aria-labelledby="club-live-update-title">
+              <div class="admin-workspace-heading"><div><p class="eyebrow">CLUBS</p><h3 id="club-live-update-title">Club live update</h3></div></div>
+              <form #clubUpdateForm class="admin-form admin-update-form" (submit)="$event.preventDefault(); postLiveUpdate('club', clubUpdateDate.value, clubUpdateTime.value, clubUpdateMessage.value, clubUpdateForm)">
+                <label><span>Datum</span><input #clubUpdateDate type="date" required /></label>
+                <label><span>Uhrzeit</span><input #clubUpdateTime type="time" required /></label>
+                <label class="admin-update-message"><span>Text</span><input #clubUpdateMessage maxlength="240" required placeholder="Kurze Nachricht für Clubs" /></label>
+                <button type="submit" class="admin-submit" [disabled]="adminBusy()">{{ adminBusy() ? 'Publishing…' : 'Publish club update' }}</button>
+              </form>
+              @for (update of adminLiveUpdatesForCategory('club'); track update.id) {
                 <article class="admin-list-item">
                   <div class="admin-list-copy"><strong>{{ update.text }}</strong><span>{{ formatLiveUpdateDate(update.datum) }} · {{ formatLiveUpdateTime(update.uhrzeit) }}</span></div>
                   <button type="button" class="secondary-action" [disabled]="adminBusy()" (click)="deleteLiveUpdate(update)">Delete</button>
                 </article>
-              } @empty { <p class="admin-empty">No live updates.</p> }
-            </div>
+              } @empty { <p class="admin-empty">No club updates.</p> }
+            </section>
+            <section class="admin-update-category" aria-labelledby="gastronomy-live-update-title">
+              <div class="admin-workspace-heading"><div><p class="eyebrow">GASTRONOMIE</p><h3 id="gastronomy-live-update-title">Gastronomy live update</h3></div></div>
+              <form #gastronomyUpdateForm class="admin-form admin-update-form" (submit)="$event.preventDefault(); postLiveUpdate('gastronomy', gastronomyUpdateDate.value, gastronomyUpdateTime.value, gastronomyUpdateMessage.value, gastronomyUpdateForm)">
+                <label><span>Datum</span><input #gastronomyUpdateDate type="date" required /></label>
+                <label><span>Uhrzeit</span><input #gastronomyUpdateTime type="time" required /></label>
+                <label class="admin-update-message"><span>Text</span><input #gastronomyUpdateMessage maxlength="240" required placeholder="Kurze Nachricht für Gastronomie" /></label>
+                <button type="submit" class="admin-submit" [disabled]="adminBusy()">{{ adminBusy() ? 'Publishing…' : 'Publish gastronomy update' }}</button>
+              </form>
+              @for (update of adminLiveUpdatesForCategory('gastronomy'); track update.id) {
+                <article class="admin-list-item">
+                  <div class="admin-list-copy"><strong>{{ update.text }}</strong><span>{{ formatLiveUpdateDate(update.datum) }} · {{ formatLiveUpdateTime(update.uhrzeit) }}</span></div>
+                  <button type="button" class="secondary-action" [disabled]="adminBusy()" (click)="deleteLiveUpdate(update)">Delete</button>
+                </article>
+              } @empty { <p class="admin-empty">No gastronomy updates.</p> }
+            </section>
           </section>
         } @else if (adminTab() === 'reports') {
           <section class="admin-workspace" aria-label="Moderate reports">
@@ -156,13 +171,15 @@
     </section>
   }
 
-  <section class="night-bar" aria-label="Party night date">
-    <div>
-      <p class="eyebrow">ALL DETAILS APPLY TO TONIGHT</p>
-      <h1>{{ partyNight().date }}</h1>
-    </div>
-    <p class="night-turn">Night into <strong>{{ partyNight().nextDay }}</strong></p>
-  </section>
+  @if (!isGastronomy(selectedClub())) {
+    <section class="night-bar" aria-label="Party night date">
+      <div>
+        <p class="eyebrow">ALL DETAILS APPLY TODAY</p>
+        <h1>{{ partyNight().date }}</h1>
+      </div>
+      <p class="night-turn"><strong>{{ todayWeekday() }}</strong></p>
+    </section>
+  }
 
   <main>
     @if (communityNoticeOpen()) {
@@ -178,29 +195,31 @@
         <div>
           <h2 id="map-title"><span class="heading-symbol" aria-hidden="true">⌖</span>Berlin is calling. Where to?</h2>
         </div>
-        <span class="club-count">{{ clubCount() }} clubs</span>
+        <span class="club-count">{{ clubCount() }} {{ selectedMapCategory() === 'gastronomy' ? 'places to eat' : 'clubs' }}</span>
       </div>
       <p class="section-description">
-        Choose a club on the map to see its details.
+        {{ selectedMapCategory() === 'gastronomy' ? 'Choose a restaurant on the map to see its menu and current queue.' : 'Choose a club on the map to see its details.' }}
       </p>
+
+      <nav class="map-category-filter" aria-label="Map category">
+        <button type="button" [class.active]="selectedMapCategory() === 'club'" [attr.aria-pressed]="selectedMapCategory() === 'club'" (click)="setMapCategory('club')">Clubs</button>
+        <button type="button" [class.active]="selectedMapCategory() === 'gastronomy'" [attr.aria-pressed]="selectedMapCategory() === 'gastronomy'" (click)="setMapCategory('gastronomy')">Gastronomie</button>
+      </nav>
 
       <div class="map-frame">
-        <div #mapElement class="berlin-map" role="application" aria-label="Interactive map of Berlin clubs"></div>
+        <div #mapElement class="berlin-map" role="application" [attr.aria-label]="selectedMapCategory() === 'gastronomy' ? 'Interactive map of Berlin restaurants' : 'Interactive map of Berlin clubs'"></div>
         <div class="map-caption">
-          Club locations · OpenStreetMap
+          {{ selectedMapCategory() === 'gastronomy' ? 'Restaurant locations' : 'Club locations' }}* · OpenStreetMap
         </div>
       </div>
-      <p class="data-note">
-        Club addresses and locations are preliminary and must be verified before launch.
-      </p>
     </section>
 
-    <section class="ticker" [class.offline]="!liveUpdates()[0]" aria-labelledby="ticker-title">
+    <section class="ticker" [class.offline]="!activeLiveUpdate()" aria-labelledby="ticker-title">
       <div class="ticker-icon" aria-hidden="true"><span class="live-indicator-dot"></span></div>
       <div>
         <h2 id="ticker-title">Live updates</h2>
-        <p>{{ liveUpdates()[0]?.text ?? 'Offline. No current updates' }}</p>
-        @if (liveUpdates()[0]; as update) {
+        <p>{{ activeLiveUpdate()?.text ?? 'Offline. No current updates' }}</p>
+        @if (activeLiveUpdate(); as update) {
           <span class="ticker-time">{{ formatLiveUpdateDate(update.datum) }} · {{ formatLiveUpdateTime(update.uhrzeit) }}</span>
         }
       </div>
@@ -217,7 +236,7 @@
             </div>
             <button class="close-button" type="button" aria-label="Close club details" (click)="clearSelection()">×</button>
           </div>
-          <div class="club-summary">
+          <div class="club-summary" [class.gastronomy-summary]="isGastronomy(club)">
             <div class="wait-value">
               <span class="eyebrow"><svg class="summary-label-icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.25" /><path d="M8 4.5V8l2.25 1.5" /></svg>WAIT TIME</span>
               <strong>{{ clubMetrics()?.waitMinutes ?? '–' }} <small>min</small></strong>
@@ -226,19 +245,43 @@
                 <span class="metric-note"><strong>Last report: {{ clubMetrics()?.latestWaitMinutes }} min · {{ formatReportTime(latestWaitReportAt) }} ({{ formatTimeAgo(latestWaitReportAt) }})</strong></span>
               }
             </div>
-            <div class="event-value">
-              <span class="eyebrow"><span aria-hidden="true">✦</span>TONIGHT</span>
-              <strong>{{ tonightEvent()?.description ?? 'No event listed yet' }}</strong>
-              @if (tonightEvent()?.djs; as djs) {
-                <span class="event-djs">DJs: {{ djs }}</span>
-              }
-              @if (tonightEvent()?.event_end_estimated) {
-                <span class="metric-note">Event end time is estimated.</span>
-              }
-              <span class="metric-note">Event details from the team</span>
-            </div>
+            @if (!isGastronomy(club)) {
+              <div class="event-value">
+                <span class="eyebrow"><span aria-hidden="true">✦</span>TONIGHT</span>
+                <strong>{{ tonightEvent()?.description ?? 'No event listed yet' }}</strong>
+                @if (tonightEvent()?.djs; as djs) {
+                  <span class="event-djs">DJs: {{ djs }}</span>
+                }
+                @if (tonightEvent()?.event_end_estimated) {
+                  <span class="metric-note">Event end time is estimated.</span>
+                }
+                <span class="metric-note">Event details from the team</span>
+              </div>
+            }
           </div>
 
+          @if (isGastronomy(club)) {
+            <section class="restaurant-menu" aria-labelledby="restaurant-menu-title">
+              <div class="restaurant-menu-heading">
+                <div>
+                  <p class="eyebrow">MENÜ-HIGHLIGHTS</p>
+                  <h3 id="restaurant-menu-title">Auf der Karte</h3>
+                </div>
+                <span class="restaurant-menu-icon" aria-hidden="true">✳</span>
+              </div>
+              <ul>
+                @for (item of restaurantMenuHighlights(club.id); track item) {
+                  <li>{{ item }}</li>
+                }
+              </ul>
+              <p class="metric-note">Aus online veröffentlichten Speisekarten zusammengestellt. Angebot und Preise können sich ändern.</p>
+              @if (club.menu_url) {
+                <a class="maps-link" [href]="club.menu_url" target="_blank" rel="noopener noreferrer">Speisekarte / Details ansehen ↗</a>
+              }
+            </section>
+          }
+
+          @if (!isGastronomy(club)) {
           <div class="club-metrics">
             <section class="metric-card" aria-label="Door Odds">
               <div class="metric-title">
@@ -279,6 +322,7 @@
               }
             </section>
           </div>
+          }
 
           <div class="club-links">
             <a
@@ -289,19 +333,19 @@
             >
               <span aria-hidden="true">↗</span> Open in Maps
             </a>
-            @if (clubWebsiteUrl(club.id); as websiteUrl) {
+            @if (!isGastronomy(club) && clubWebsiteUrl(club.id); as websiteUrl) {
               <a class="maps-link" [href]="websiteUrl" target="_blank" rel="noopener noreferrer">
                 <span aria-hidden="true">↗</span> Club Website
               </a>
             }
             <button type="button" class="maps-link address-toggle" (click)="toggleAddress()" [attr.aria-expanded]="addressOpen()" aria-controls="club-address">
-              <span aria-hidden="true">⌖</span> Club Address
+              <span aria-hidden="true">⌖</span> {{ isGastronomy(club) ? 'Restaurant Address' : 'Club Address' }}
             </button>
           </div>
           @if (addressOpen()) {
             <div class="club-address" id="club-address">
               <div>
-                <span class="eyebrow">CLUB ADDRESS</span>
+                <span class="eyebrow">{{ isGastronomy(club) ? 'RESTAURANT ADDRESS' : 'CLUB ADDRESS' }}</span>
                 <p>{{ club.address }}</p>
                 <span class="metric-note">Please verify the address with the club before travelling.</span>
               </div>
@@ -313,6 +357,7 @@
             </div>
           }
 
+          @if (!isGastronomy(club)) {
           <div class="detail-actions">
             <button type="button" class="secondary-action" (click)="historyOpen.update(open => !open)" [attr.aria-expanded]="historyOpen()">
               <span>◷ When was this reported?</span><span>{{ historyOpen() ? '−' : '+' }}</span>
@@ -335,7 +380,7 @@
                     </article>
                   }
                 }
-              </div>
+                </div>
             }
             <button type="button" class="secondary-action" (click)="programOpen.update(open => !open)" [attr.aria-expanded]="programOpen()">
               <span>▦ Upcoming events</span><span>{{ programOpen() ? '−' : '+' }}</span>
@@ -358,6 +403,7 @@
               </div>
             }
           </div>
+          }
 
           <button type="button" class="report-toggle" [disabled]="reportStatus() === 'submitting'" (click)="toggleReport()" [attr.aria-expanded]="reportOpen()">
             @if (reportOpen()) { Close } @else { ✎ Share your report }
@@ -370,12 +416,12 @@
                   <p class="eyebrow">COMMUNITY REPORT</p>
                   <h3 id="report-title">What's it like right now?</h3>
                 </div>
-                <p>Select at least one detail.</p>
+                <p>{{ isGastronomy(club) ? 'Share the current queue time.' : 'Select at least one detail.' }}</p>
               </div>
               <div class="prototype-notice" role="note">
                 No account needed. A random browser ID applies a 10-minute per-club cooldown and is not shown publicly.
               </div>
-              @if (tonightEvent()?.event_end_estimated) {
+              @if (!isGastronomy(club) && tonightEvent()?.event_end_estimated) {
                 <p class="prototype-notice" role="note">The event end time is estimated and may not match the actual closing time.</p>
               }
               @if (!backendConfigured) {
@@ -397,6 +443,7 @@
                 </div>
               </fieldset>
 
+              @if (!isGastronomy(club)) {
               <fieldset class="report-field" [disabled]="reportStatus() === 'submitting'">
                 <legend>Door Odds <span>{{ reportDraft().entryChance ?? '–' }} / 10</span></legend>
                 <input type="range" min="1" max="10" step="1" [value]="reportDraft().entryChance ?? 5" (input)="setEntryChance($event)" aria-label="Door Odds from 1 to 10" />
@@ -425,6 +472,7 @@
                 </p>
               </fieldset>
               }
+              }
 
               @if (reportWarnings().length) {
                 <div class="report-outlier-warning" role="alert">
@@ -442,11 +490,11 @@
                   @if (reportStatus() === 'submitting') { Checking… } @else { Submit report }
                 </button>
               }
-              @if (reportEventNotice(); as notice) {
+              @if (!isGastronomy(club) && reportEventNotice(); as notice) {
                 <p class="form-error" role="alert">{{ notice }}</p>
               }
               @if (!reportReady()) {
-                <p class="form-hint">Select at least one detail.</p>
+                <p class="form-hint">{{ isGastronomy(club) ? 'Select the current wait time.' : 'Select at least one detail.' }}</p>
               }
               @if (reportStatus() === 'success') {
                 <p class="preview-result" role="status">Thanks! Your report was submitted.</p>
@@ -455,6 +503,7 @@
 
             </section>
           }
+          @if (!isGastronomy(club)) {
           <section id="forum" class="forum-section" aria-labelledby="forum-title">
             <div class="section-heading">
               <div>
@@ -557,11 +606,12 @@
             }
             }
           </section>
+          }
         </article>
       } @else {
         <div class="empty-selection">
           <span class="selection-arrow" aria-hidden="true">↗</span>
-          <p><strong>Choose a club</strong><br />Tap a marker on the map.</p>
+          <p><strong>{{ selectedMapCategory() === 'gastronomy' ? 'Choose a restaurant' : 'Choose a club' }}</strong><br />Tap a marker on the map.</p>
         </div>
       }
     </section>
@@ -582,13 +632,13 @@
         <h2>Data we process and why</h2>
         <p>When you visit the website, the hosting provider may process technical connection data needed to deliver, maintain and secure the service, such as your IP address, the time of the request, the requested page, and browser or device information. The applicable retention period for server logs must be confirmed with the hosting provider.</p>
         <p>The website creates a random visitor ID and stores it in your browser's local storage. It is sent to Supabase with reports, forum posts and likes to associate these actions with the same browser and limit repeated club reports. This visitor ID is separate from the anonymous analytics data and is not used to profile visitors. The ID does not itself contain your name, but it is a pseudonymous identifier and should not be considered anonymous. You can remove it by clearing this website's stored data in your browser; this may prevent us from associating your previous likes with you.</p>
-        <p>For a club report, we process the information you select about waiting time, likelihood of entry, atmosphere and price, as well as the club, event, submission time and visitor ID. Reports for the same event are used to calculate its current averages. For forum posts and replies, we process and publish the display name you choose, the text and the time of submission. Posts and replies are publicly visible while available. Please do not publish sensitive or other personal information about yourself or anyone else. For anonymous analytics, we do not collect names, email addresses, account data, or other personal identifiers.</p>
+        <p>For a club report, we process the information you select about waiting time, likelihood of entry, atmosphere and price, as well as the club, event, submission time and visitor ID. For a gastronomy report, we process the reported queue time, location, submission time and visitor ID. Reports are used to calculate current wait-time information. For forum posts and replies, we process and publish the display name you choose, the text and the time of submission. Posts and replies are publicly visible while available. Please do not publish sensitive or other personal information about yourself or anyone else. For anonymous analytics, we do not collect names, email addresses, account data, or other personal identifiers.</p>
         <p>Where applicable, processing is necessary to provide the features you request (Article 6(1)(b) GDPR) and is based on our legitimate interests in operating and securing the service and preventing abuse (Article 6(1)(f) GDPR). The specific legal basis and balancing assessment should be confirmed before launch.</p>
         <h2>Service providers and external content</h2>
         <p>The website is hosted by Render. Reports, forum content and administration features are processed through Supabase. Anonymous visitor analytics are processed through Umami. When the map loads, your browser also requests map tiles from OpenStreetMap servers. The relevant provider receives technically necessary connection data, including your IP address. See <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap's information</a> for more details.</p>
         <p>Render, Supabase and Umami may process data as part of their services and according to their respective settings. Before launch, the data processing agreements, configured storage regions, any transfers to countries outside the EEA and the applicable safeguards should be checked.</p>
         <h2>How long we keep data</h2>
-        <p>Forum posts and replies are automatically deleted after 24 hours; the cleanup job is scheduled to run every five minutes. Club reports are automatically deleted after their event ends. The cleanup job runs every five minutes, so deletion may be delayed briefly. The provider's technical backups may be subject to different retention periods. Reports about forum content are not automatically deleted and remain stored until reviewed or deleted by the administrator.</p>
+        <p>Forum posts and replies are automatically deleted after 24 hours; the cleanup job is scheduled to run every five minutes. Club reports are automatically deleted after their event ends, and gastronomy queue reports are deleted after the Berlin calendar day on which they were submitted. The cleanup job runs every five minutes, so deletion may be delayed briefly. The provider's technical backups may be subject to different retention periods. Reports about forum content are not automatically deleted and remain stored until reviewed or deleted by the administrator.</p>
         <h2>Your privacy rights</h2>
         <p>Subject to applicable legal requirements, you may request access to, correction or deletion of your personal data, or restriction of its processing; object to processing based on legitimate interests; and, where applicable, request data portability or withdraw consent. Contact us at <a href="mailto:info.queue@web.de">info.queue@web.de</a>. Please describe your request so we can identify the relevant data. Where necessary, we may ask for reasonable information to verify your identity.</p>
         <p>You also have the right to lodge a complaint with a data protection supervisory authority. In Berlin, this is the <a href="https://www.datenschutz-berlin.de/" target="_blank" rel="noopener noreferrer">Berlin Commissioner for Data Protection and Freedom of Information</a>. These notices are based in particular on the <a href="https://eur-lex.europa.eu/eli/reg/2016/679/oj?locale=en" target="_blank" rel="noopener noreferrer">General Data Protection Regulation (GDPR)</a>.</p>
@@ -625,5 +675,6 @@
         <circle cx="18" cy="6" r="1" fill="currentColor" />
       </svg>
     </a>
+    <p class="location-disclaimer">* Addresses may be inaccurate or outdated. Please verify with the venue. Queue Berlin accepts no liability for address information.</p>
   </footer>
 </div>

@@ -48,16 +48,22 @@ export interface ManagedClub {
   longitude: number;
   color: string;
   is_active: boolean;
+  category?: 'club' | 'gastronomy' | 'other';
+  menu_url?: string | null;
 }
 
 export interface LiveUpdate {
+  id: string;
   datum: string;
   uhrzeit: string;
   text: string;
   created_at: string;
+  category?: 'club' | 'gastronomy';
 }
 
-export type NewLiveUpdate = Pick<LiveUpdate, 'datum' | 'uhrzeit' | 'text'>;
+export type NewLiveUpdate = Pick<LiveUpdate, 'datum' | 'uhrzeit' | 'text'> & {
+  category: 'club' | 'gastronomy';
+};
 
 export interface ForumComment {
   id: string;
@@ -137,6 +143,23 @@ export class SupabaseService {
     return reports.sort((left, right) => right.created_at.localeCompare(left.created_at));
   }
 
+  async loadWaitReports(clubSlug: string): Promise<PublicReport[]> {
+    const client = await this.requireClient();
+    const { data, error } = await client
+      .from('public_reports')
+      .select('id, club_slug, event_id, wait_minutes, entry_chance, mood, entry_range, created_at')
+      .eq('club_slug', clubSlug)
+      .is('event_id', null)
+      .gte('created_at', new Date(Date.now() - 26 * 60 * 60 * 1000).toISOString())
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      throw error;
+    }
+
+    return data ?? [];
+  }
+
   async loadClubEvents(clubSlug: string): Promise<ClubEvent[]> {
     const client = await this.requireClient();
     const { data, error } = await client
@@ -172,7 +195,7 @@ export class SupabaseService {
     const client = await this.requireClient();
     let query = client
       .from('clubs')
-      .select('slug, name, district, address, latitude, longitude, color, is_active')
+      .select('slug, name, district, address, latitude, longitude, color, is_active, category, menu_url')
       .order('name');
     if (!includeInactive) {
       query = query.eq('is_active', true);
@@ -184,14 +207,17 @@ export class SupabaseService {
     return data ?? [];
   }
 
-  async loadLiveUpdates(limit = 1): Promise<LiveUpdate[]> {
+  async loadLiveUpdates(limit = 100, category?: 'club' | 'gastronomy'): Promise<LiveUpdate[]> {
     const client = await this.requireClient();
-    const { data, error } = await client
+    let query = client
       .from('live_updates')
-      .select('datum, uhrzeit, text, created_at')
-      .order('datum', { ascending: false })
-      .order('uhrzeit', { ascending: false })
+      .select('id, datum, uhrzeit, text, created_at, category')
+      .order('created_at', { ascending: false })
       .limit(limit);
+    if (category) {
+      query = query.eq('category', category);
+    }
+    const { data, error } = await query;
     if (error) {
       throw error;
     }
@@ -276,9 +302,7 @@ export class SupabaseService {
     const { error } = await client
       .from('live_updates')
       .delete()
-      .eq('datum', update.datum)
-      .eq('uhrzeit', update.uhrzeit)
-      .eq('text', update.text);
+      .eq('id', update.id);
     if (error) {
       throw error;
     }

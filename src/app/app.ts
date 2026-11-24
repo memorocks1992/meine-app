@@ -15,6 +15,8 @@ interface Club {
   latitude: number;
   longitude: number;
   color: string;
+  category?: 'club' | 'gastronomy' | 'other';
+  menu_url?: string | null;
   is_active?: boolean;
 }
 
@@ -36,6 +38,12 @@ const MAX_UPCOMING_EVENT_DAYS = 100;
 const WAIT_REPORT_FRESHNESS_MS = 60 * 60 * 1000;
 const EVENT_PRICE_FRESHNESS_MS = 48 * 60 * 60 * 1000;
 const ENTRY_RANGES = ['Up to €10', '€10–15', '€15–20', '€20–30', '€30+'];
+const RESTAURANT_MENU_HIGHLIGHTS: Readonly<Record<string, readonly string[]>> = {
+  'zagros-gemuesekebap': ['Hähnchen-Gemüsekebap', 'Veggie-Gemüsekebap', 'Dürüm & Wraps', 'Kebap-Bowls'],
+  'mustafa-gemuese-kebap': ['Gemüse Kebap mit Hähnchen', 'Veggie Kebap', 'Dürüm', 'Kebap mit Grillgemüse'],
+  'oggis-gemuesekebab': ['Chicken Gemüse Kebab', 'Veggie Kebab', 'Käse-Sandwich', 'Wraps'],
+  'nhas-city-chicken': ['Halbes Hähnchen mit Beilagen', 'Crispy Wings', 'Chicken Bites', 'Burger & Wraps'],
+};
 
 function priceCategory(value: string | null): number {
   const legacy = ENTRY_RANGES.indexOf(value ?? '');
@@ -302,8 +310,12 @@ export class App implements OnDestroy {
   @ViewChild('mapElement') private mapElement?: ElementRef<HTMLDivElement>;
 
   protected readonly selectedClub = signal<Club | null>(null);
+  protected readonly selectedMapCategory = signal<'club' | 'gastronomy'>('club');
   protected readonly partyNight = signal(getPartyNight(new Date()));
   private readonly currentTime = signal(new Date());
+  protected readonly todayWeekday = computed(() =>
+    new Intl.DateTimeFormat('en-GB', { weekday: 'long', timeZone: 'Europe/Berlin' }).format(this.currentTime()),
+  );
   protected readonly currentCalendarDate = signal(berlinCalendarDate(new Date()));
   protected readonly clubsWithEventsToday = signal<Set<string>>(new Set());
   private readonly eventIntervalsToday = signal<ClubEvent[]>([]);
@@ -321,6 +333,7 @@ export class App implements OnDestroy {
   protected readonly reportReady = computed(() => {
     const draft = this.reportDraft();
     if (!this.officialPrice()?.entry_price_complete && this.entryPriceInvalid()) return false;
+    if (this.isGastronomy(this.selectedClub())) return draft.waitMinutes !== null;
     return draft.waitMinutes !== null
       || (draft.entryRange !== null && !this.officialPrice()?.entry_price_complete)
       || draft.entryChance !== null
@@ -383,8 +396,14 @@ export class App implements OnDestroy {
   protected readonly adminReports = signal<AdminReport[]>([]);
   protected readonly adminLiveUpdates = signal<LiveUpdate[]>([]);
   protected readonly liveUpdates = signal<LiveUpdate[]>([]);
+  protected readonly activeLiveUpdate = computed(() => this.liveUpdates().find((update) =>
+    (update.category ?? 'club') === this.selectedMapCategory(),
+  ) ?? null);
   protected readonly editingClub = signal<ManagedClub | null>(null);
-  protected readonly clubCount = computed(() => this.clubs().filter((club) => club.is_active !== false).length);
+  protected readonly visibleClubs = computed(() => this.clubs().filter((club) =>
+    club.is_active !== false && (club.category ?? 'club') === this.selectedMapCategory(),
+  ));
+  protected readonly clubCount = computed(() => this.visibleClubs().length);
   protected readonly activeAdminClubs = computed(() => this.adminClubs().filter((club) => club.is_active));
   protected readonly backendConfigured: boolean;
   protected readonly clubs = signal<Club[]>([
@@ -403,6 +422,10 @@ export class App implements OnDestroy {
     { id: 'kater', name: 'Kater Blau', district: 'Friedrichshain', address: 'Holzmarktstraße 25, 10243 Berlin', latitude: 52.5125, longitude: 13.4297, color: '#a78bfa' },
     { id: 'suess-war-gestern', name: 'Süß war gestern', district: 'Friedrichshain', address: 'Wühlischstraße 43, 10245 Berlin', latitude: 52.5086027, longitude: 13.4610994, color: '#fb7185' },
     { id: 'oxi', name: 'OXI', district: 'Lichtenberg', address: 'Wiesenweg 1–4, 10365 Berlin', latitude: 52.5076121, longitude: 13.4749435, color: '#22d3ee' },
+    { id: 'zagros-gemuesekebap', name: 'ZAGROS Gemüsekebap', district: 'Kreuzberg', address: 'Skalitzer Straße 100, 10997 Berlin', latitude: 52.4996514, longitude: 13.4283848, color: '#f5bb55', category: 'gastronomy', menu_url: 'https://www.ubereats.com/de/store/zagros-gemuse-kebap/spsL3h59Vv22VMw2Bcwogg' },
+    { id: 'mustafa-gemuese-kebap', name: 'Mustafa’s Gemüse Kebap', district: 'Kreuzberg', address: 'Mehringdamm 33, 10961 Berlin', latitude: 52.493485, longitude: 13.3885619, color: '#f5bb55', category: 'gastronomy', menu_url: 'https://speisekarte.menu/restaurants/berlin/mustafas-gemuese-kebap-4/menu' },
+    { id: 'oggis-gemuesekebab', name: 'Oggi’s Gemüsekebab', district: 'Mitte', address: 'Döberitzer Straße 1, 10557 Berlin', latitude: 52.5294618, longitude: 13.3688309, color: '#f5bb55', category: 'gastronomy', menu_url: 'https://intravel.net/de/berlin/restaurants-cafes/oggis-gemusekebab' },
+    { id: 'nhas-city-chicken', name: 'Nhas City Chicken', district: 'Mitte', address: 'Torstraße 125, 10119 Berlin', latitude: 52.5298592, longitude: 13.4004233, color: '#f5bb55', category: 'gastronomy', menu_url: 'https://citychickennhas.de/menu' },
   ]);
 
   private readonly platformId = inject(PLATFORM_ID);
@@ -553,6 +576,21 @@ export class App implements OnDestroy {
     this.selectClub(null);
   }
 
+  protected setMapCategory(category: 'club' | 'gastronomy'): void {
+    if (this.selectedMapCategory() === category) return;
+    this.selectedMapCategory.set(category);
+    this.selectClub(null);
+    this.refreshClubIcons();
+  }
+
+  protected isGastronomy(club: Club | null): boolean {
+    return club?.category === 'gastronomy';
+  }
+
+  protected restaurantMenuHighlights(clubId: string): readonly string[] {
+    return RESTAURANT_MENU_HIGHLIGHTS[clubId] ?? [];
+  }
+
   protected clubWebsiteUrl(clubId: string): string | null {
     return CLUB_WEBSITE_URLS[clubId] ?? null;
   }
@@ -631,20 +669,19 @@ export class App implements OnDestroy {
 
   protected async submitReport(confirmed = false): Promise<void> {
     const club = this.selectedClub();
+    const isGastronomy = this.isGastronomy(club);
     const currentEvent = getCurrentClubEvent(this.clubEvents(), new Date());
     if (!club || !this.reportReady() || this.reportStatus() === 'submitting') {
       return;
     }
-    if (confirmed && (this.reportWarnings().length === 0
+    if (confirmed && (isGastronomy || this.reportWarnings().length === 0
       || this.reportWarningEventId() !== currentEvent?.id)) {
       this.reportWarnings.set([]);
       this.reportEventNotice.set('The event or your report changed. Please review and submit again.');
       return;
     }
-    const eventNotice = getReportEventNotice(
-      this.clubDataStatus(),
-      currentEvent !== null,
-      club.name,
+    const eventNotice = isGastronomy ? null : getReportEventNotice(
+      this.clubDataStatus(), currentEvent !== null, club.name,
     );
     if (eventNotice) {
       this.reportEventNotice.set(eventNotice);
@@ -656,8 +693,8 @@ export class App implements OnDestroy {
 
     try {
       const draft = this.reportDraft();
-      const event = currentEvent!;
-      if (!confirmed) {
+      if (!confirmed && !isGastronomy) {
+        const event = currentEvent!;
         const reports = await this.supabase.loadClubReports(club.id, event.id);
         if (this.selectedClub()?.id !== club.id || !this.reportOpen() || this.reportDraft() !== draft
           || getCurrentClubEvent(this.clubEvents(), new Date())?.id !== event.id) {
@@ -684,9 +721,9 @@ export class App implements OnDestroy {
         club_slug: club.id,
         visitor_id: visitorId,
         wait_minutes: draft.waitMinutes,
-        entry_chance: draft.entryChance,
-        mood: draft.mood,
-        entry_range: this.officialPrice()?.entry_price_complete ? null : draft.entryRange,
+        entry_chance: isGastronomy ? null : draft.entryChance,
+        mood: isGastronomy ? null : draft.mood,
+        entry_range: isGastronomy || this.officialPrice()?.entry_price_complete ? null : draft.entryRange,
       };
       await this.supabase.submitReport(report);
       if (this.selectedClub()?.id !== club.id) return;
@@ -1081,7 +1118,17 @@ export class App implements OnDestroy {
     }
   }
 
-  protected async postLiveUpdate(date: string, time: string, message: string, form: HTMLFormElement): Promise<void> {
+  protected adminLiveUpdatesForCategory(category: 'club' | 'gastronomy'): LiveUpdate[] {
+    return this.adminLiveUpdates().filter((update) => (update.category ?? 'club') === category);
+  }
+
+  protected async postLiveUpdate(
+    category: 'club' | 'gastronomy',
+    date: string,
+    time: string,
+    message: string,
+    form: HTMLFormElement,
+  ): Promise<void> {
     this.adminNotice.set(null);
     if (!date || !time || !message.trim()) {
       this.adminError.set('Enter a date, time, and text before publishing the update.');
@@ -1095,13 +1142,14 @@ export class App implements OnDestroy {
         datum: date,
         uhrzeit: time,
         text: message.trim(),
+        category,
       });
       form.reset();
-      this.adminNotice.set('Live update published.');
+      this.adminNotice.set(`${category === 'gastronomy' ? 'Gastronomy' : 'Clubs'} live update published.`);
       await this.loadAdminDashboard();
       await this.loadPublicLiveUpdate();
     } catch (error) {
-      console.error('Unable to publish live update.', error);
+      console.error(`Unable to publish ${category} live update.`, error);
       this.adminError.set(this.getErrorMessage(error));
     } finally {
       this.adminBusy.set(false);
@@ -1280,6 +1328,8 @@ export class App implements OnDestroy {
         latitude: club.latitude,
         longitude: club.longitude,
         color: club.color,
+        category: club.category ?? 'club',
+        menu_url: club.menu_url,
         is_active: club.is_active,
       })));
       this.refreshClubIcons();
@@ -1304,6 +1354,8 @@ export class App implements OnDestroy {
         latitude: club.latitude,
         longitude: club.longitude,
         color: club.color,
+        category: club.category ?? 'club',
+        menu_url: club.menu_url,
         is_active: club.is_active,
       })));
       this.refreshClubIcons();
@@ -1317,25 +1369,36 @@ export class App implements OnDestroy {
       return;
     }
     try {
-      const updates = await this.supabase.loadLiveUpdates();
+      const updates = (await Promise.all([
+        this.supabase.loadLiveUpdates(1, 'club'),
+        this.supabase.loadLiveUpdates(1, 'gastronomy'),
+      ])).flat();
       if (this.destroyed) {
         return;
       }
       if (this.liveUpdateExpiryTimer) {
         clearTimeout(this.liveUpdateExpiryTimer);
       }
-      const update = updates[0];
-      const createdAt = update ? Date.parse(update.created_at) : 0;
-      if (update && !Number.isFinite(createdAt)) {
-        throw new Error('Live update has an invalid publication timestamp.');
-      }
-      const remaining = update ? createdAt + 48 * 60 * 60 * 1000 - Date.now() : 0;
-      this.liveUpdates.set(remaining > 0 ? updates : []);
-      if (remaining > 0) {
+      const currentTime = Date.now();
+      const parsedUpdates = updates.map((update) => {
+        const createdAt = Date.parse(update.created_at);
+        if (!Number.isFinite(createdAt)) {
+          throw new Error('Live update has an invalid publication timestamp.');
+        }
+        return { update, createdAt };
+      });
+      const currentUpdates = parsedUpdates
+        .filter(({ createdAt }) => createdAt + 48 * 60 * 60 * 1000 > currentTime)
+        .map(({ update }) => update);
+      this.liveUpdates.set(currentUpdates);
+      const nextExpiry = parsedUpdates
+        .map(({ createdAt }) => createdAt + 48 * 60 * 60 * 1000)
+        .filter((expiresAt) => expiresAt > currentTime)
+        .sort((left, right) => left - right)[0];
+      if (nextExpiry) {
         this.liveUpdateExpiryTimer = setTimeout(() => {
-          this.liveUpdates.set([]);
           void this.loadPublicLiveUpdate();
-        }, remaining);
+        }, nextExpiry - currentTime);
       }
     } catch (error) {
       console.error('Unable to load the public live update.', error);
@@ -1426,6 +1489,18 @@ export class App implements OnDestroy {
     this.clubDataStatus.set('loading');
     const eventDate = this.currentCalendarDate();
     try {
+      if (this.isGastronomy(club)) {
+        const reports = await this.supabase.loadWaitReports(club.id);
+        if (this.selectedClub()?.id !== club.id || this.currentCalendarDate() !== eventDate) {
+          return;
+        }
+        this.clubEvents.set([]);
+        this.clubReports.set(reports);
+        this.clubMetrics.set(calculateClubMetrics(reports, this.currentTime()));
+        this.clubDataStatus.set('ready');
+        return;
+      }
+
       const events = await this.supabase.loadClubEvents(club.id);
       if (this.selectedClub()?.id !== club.id || this.currentCalendarDate() !== eventDate) {
         return;
@@ -1502,16 +1577,25 @@ export class App implements OnDestroy {
     club: Club,
     selected: boolean,
   ): Leaflet.DivIcon {
-    const [offsetX, offsetY] = this.compactLayout
-      ? this.compactLabelOffsets.get(club.id) ?? [0, 0]
-      : this.labelOffsets.get(club.id) ?? [0, 0];
+    const isGastronomy = club.category === 'gastronomy';
+    const [offsetX, offsetY] = isGastronomy
+      ? [0, this.compactLayout ? -54 : -58]
+      : this.compactLayout
+        ? this.compactLabelOffsets.get(club.id) ?? [0, 0]
+        : this.labelOffsets.get(club.id) ?? [0, 0];
     const hasEventToday = this.clubsWithEventsToday().has(club.id);
-    const color = hasEventToday ? '#4ade80' : '#f87171';
+    const color = isGastronomy ? '#f5bb55' : hasEventToday ? '#4ade80' : '#f87171';
     const name = escapeHtml(club.name);
+    const marker = isGastronomy
+      ? `<span class="food-map-anchor" style="--marker-color:${color}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3v6m4-6v6M6 6h4m-2 3v12M16 3v18m0-18c3 2 4 5 4 8h-4" /></svg></span>`
+      : `<span class="club-map-anchor" style="--marker-color:${color}"></span>`;
+    const labelPin = isGastronomy
+      ? `<svg class="food-map-pin" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3v6m4-6v6M6 6h4m-2 3v12M16 3v18m0-18c3 2 4 5 4 8h-4" /></svg>`
+      : '<span class="club-map-pin"></span>';
 
     return leaflet.divIcon({
       className: 'club-map-icon',
-      html: `<svg class="club-map-connector" viewBox="0 0 400 400" aria-hidden="true"><line x1="200" y1="200" x2="${200 + offsetX}" y2="${200 + offsetY}" style="stroke:${color}" /></svg><span class="club-map-anchor" style="--marker-color:${color}"></span><span class="club-map-label${selected ? ' is-selected' : ''}" style="--marker-color:${color};--label-x:${offsetX}px;--label-y:${offsetY}px"><span class="club-map-pin"></span>${name}</span>`,
+      html: `<svg class="club-map-connector" viewBox="0 0 400 400" aria-hidden="true"><line x1="200" y1="200" x2="${200 + offsetX}" y2="${200 + offsetY}" style="stroke:${color}" /></svg>${marker}<span class="club-map-label${selected ? ' is-selected' : ''}" style="--marker-color:${color};--label-x:${offsetX}px;--label-y:${offsetY}px">${labelPin}${name}</span>`,
       iconSize: [1, 1],
       iconAnchor: [0, 0],
     });
@@ -1545,13 +1629,15 @@ export class App implements OnDestroy {
       this.forumTotalCount.set(0);
       this.forumError.set(null);
       this.forumNotice.set(null);
-      this.forumStatus.set(club ? 'loading' : 'idle');
+      this.forumStatus.set(club && !this.isGastronomy(club) ? 'loading' : 'idle');
     }
     this.selectedClub.set(club);
     this.refreshClubIcons();
     if (club) {
       void this.loadClubData(club);
-      void this.loadForum(club.id);
+      if (!this.isGastronomy(club)) {
+        void this.loadForum(club.id);
+      }
     } else {
       this.clubDataStatus.set('idle');
     }
@@ -1569,7 +1655,7 @@ export class App implements OnDestroy {
       return;
     }
 
-    const activeClubs = this.clubs().filter((club) => club.is_active !== false);
+    const activeClubs = this.visibleClubs();
     const activeIds = new Set(activeClubs.map((club) => club.id));
     for (const [id, marker] of this.markers) {
       if (!activeIds.has(id)) {

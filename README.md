@@ -1,6 +1,8 @@
 # Queue Berlin
 
-A responsive web prototype for Berlin's club scene. The map shows the initial club selection. Visitors can read and submit reports without creating an account; only admins sign in. Supabase report submission, public data, and admin authentication become active after the project is configured below. Verify club addresses and map locations before launch.
+A responsive web prototype for Berlin's nightlife. The map starts with clubs and also includes a gastronomy category. Visitors can read and submit reports without creating an account; only admins sign in. Supabase report submission, public data, and admin authentication become active after the project is configured below. Verify addresses and map locations before launch.
+
+The map has separate **Clubs** and **Gastronomie** categories. The gastronomy seed migration adds four restaurant locations and public menu links; its menu cards show selected items, not a complete or price-verified menu. Restaurant wait-time reports are event-independent and are automatically deleted after the Berlin calendar day on which they were submitted. Apply `20261124110000_gastronomy_venues.sql` before deploying this category.
 
 ## Supabase setup
 
@@ -38,6 +40,8 @@ The entry-price pilot checks Club OST's official calendar every six hours using 
 The public report flow and admin authentication are wired to these tables. After an admin signs in, the dashboard can add/edit clubs, hide or publish them, schedule events, publish or remove live updates, and remove visitor reports. Hiding a club preserves its events. Until the Supabase project is configured, submission and sign-in stay disabled rather than pretending data was saved.
 
 Live updates expire 48 hours after publication, independently of the date and time entered for display. Apply the [live-update expiry migration](./supabase/migrations/20261123090000_live_update_expiry.sql) before deploying the updated app. It hides expired updates immediately, removes existing expired entries on migration, and schedules database cleanup every minute (physical deletion can therefore be up to a minute later). Older entries have no recorded publication timestamp, so their displayed Berlin date and time are used as an approximation, capped at the migration time. Verify that the `live-updates-expiry` pg_cron job is active.
+
+Apply the [categorized live-updates migration](./supabase/migrations/20261124120000_categorized_live_updates.sql) after the expiry migration. Existing updates are assigned to Clubs. Admins can publish multiple updates for Clubs and Gastronomie; the public ticker shows the newest active update for the selected map category, while the admin list retains older entries for deletion.
 
 ## Development server
 

@@ -32,7 +32,7 @@
     <text x="136" y="212" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700" letter-spacing="2" fill="#f7f4fb">QUEUE <tspan fill="#bc87ff">BERLIN</tspan></text>
     <text x="1022" y="212" text-anchor="end" font-family="Arial, sans-serif" font-size="13" fill="#c8c1d0">Choose a club　 Admin</text>
     <path d="M86 236h994v1H86z" fill="#302b39"/>
-    <text x="104" y="276" font-family="Arial, sans-serif" font-size="11" font-weight="700" letter-spacing="2" fill="#aaa4b4">ALL DETAILS APPLY TO TONIGHT</text>
+    <text x="104" y="276" font-family="Arial, sans-serif" font-size="11" font-weight="700" letter-spacing="2" fill="#aaa4b4">ALL DETAILS APPLY TODAY</text>
     <text x="104" y="302" font-family="Arial, sans-serif" font-size="20" font-weight="700" fill="#f7f4fb">Thursday, 12 November 2026</text>
 
     <image href="queue-berliner-pilsner-banner-728x90.svg" x="104" y="322" width="946" height="112" preserveAspectRatio="none"/>
