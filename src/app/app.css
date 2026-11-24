@@ -1949,7 +1949,7 @@ footer {
 .brand-mark {
   width: auto;
   height: auto;
-  transform: translateY(-2px);
+  transform: translateY(-3px);
   background: none;
   color: var(--purple);
   font-size: 28px;
@@ -2659,5 +2659,354 @@ footer {
     align-items: flex-start;
     flex-direction: column;
     gap: 7px;
+  }
+}
+
+
+.app-shell {
+  --surface: #15121b;
+  --line: #393341;
+  --muted: #aaa4b4;
+  --purple: #bc87ff;
+  color: #f7f4fb;
+  background:
+    radial-gradient(ellipse at 50% -18%, rgb(101 53 148 / 17%), transparent 48rem),
+    linear-gradient(145deg, #08070a, #15121a 55%, #0c0a10);
+}
+
+.topbar,
+.night-bar,
+.admin-panel {
+  border-bottom: 1px solid rgb(214 195 232 / 13%);
+  background:
+    linear-gradient(145deg, rgb(43 39 49 / 98%), rgb(16 14 20 / 98%) 52%, rgb(31 27 37 / 98%));
+  box-shadow: 0 5px 18px rgb(0 0 0 / 35%), inset 0 1px rgb(255 255 255 / 9%);
+}
+
+.brand-mark {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  transform: none;
+  place-items: center;
+  border: 1px solid rgb(255 255 255 / 24%);
+  border-radius: 11px;
+  background: linear-gradient(145deg, #d6c9e2, #766b82 38%, #302a38 72%, #a396b0);
+  box-shadow: 0 3px 0 #09080b, 0 7px 14px rgb(0 0 0 / 42%), inset 0 1px rgb(255 255 255 / 50%);
+  color: #17121d;
+  font-size: 23px;
+  text-shadow: 0 1px rgb(255 255 255 / 30%);
+}
+
+.brand-name strong,
+.night-turn strong,
+.heading-symbol,
+.club-count,
+.metric-title > strong,
+.maps-link,
+.selection-arrow,
+.footer-brand span:first-child,
+.privacy-notice summary,
+.instagram-link {
+  color: var(--purple);
+}
+
+.admin-login input,
+.admin-form input,
+.admin-form select,
+.forum-compose input,
+.forum-compose textarea,
+.forum-reply-form input {
+  border: 1px solid #494252;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #24212a, #121016);
+  box-shadow: inset 0 1px 3px rgb(0 0 0 / 45%), inset 0 1px rgb(255 255 255 / 4%);
+  color: #f7f4fb;
+}
+
+.admin-form input:focus,
+.admin-form select:focus,
+.admin-login input:focus,
+.forum-compose input:focus,
+.forum-compose textarea:focus,
+.forum-reply-form input:focus {
+  outline: 2px solid #a76ce0;
+  outline-offset: 2px;
+}
+
+.admin-submit,
+.report-toggle,
+.submit-report:not(.forum-publish),
+.forum-publish {
+  border: 1px solid rgb(220 195 243 / 38%);
+  border-radius: 9px;
+  background: linear-gradient(145deg, #9676ad, #583873 42%, #30213d 76%, #755889);
+  box-shadow: 0 3px 0 #100c14, 0 7px 14px rgb(0 0 0 / 35%), inset 0 1px rgb(255 255 255 / 28%);
+  color: #fff;
+}
+
+.admin-submit:hover,
+.report-toggle:hover,
+.submit-report:not(.forum-publish):not(:disabled):hover,
+.forum-publish:not(:disabled):hover {
+  background: linear-gradient(145deg, #aa8bc0, #694589 45%, #392648 78%, #88699b);
+}
+
+.map-category-filter {
+  border: 1px solid #46404e;
+  background: linear-gradient(145deg, #302c35, #141218 60%, #26222b);
+  box-shadow: 0 3px 9px rgb(0 0 0 / 35%), inset 0 1px rgb(255 255 255 / 9%);
+}
+
+.map-category-filter button.active {
+  background: linear-gradient(145deg, #a382bd, #62427e 45%, #39264a 78%, #826496);
+  box-shadow: 0 2px 0 #130d19, inset 0 1px rgb(255 255 255 / 24%);
+  color: #fff;
+}
+
+.map-frame {
+  border: 1px solid #504857;
+  border-radius: 18px;
+  padding: 6px;
+  background: linear-gradient(145deg, #77707e, #25212b 18%, #0b0a0e 52%, #534b5a 84%, #1a171f);
+  box-shadow: 0 16px 38px rgb(0 0 0 / 48%), inset 0 1px rgb(255 255 255 / 24%);
+}
+
+.berlin-map {
+  border-radius: 12px;
+}
+
+.map-caption {
+  bottom: 18px;
+  left: 18px;
+  border: 1px solid rgb(255 255 255 / 17%);
+  border-radius: 999px;
+  background: rgb(17 15 21 / 91%);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 35%), inset 0 1px rgb(255 255 255 / 8%);
+}
+
+.community-notice,
+.ticker,
+.forum-section {
+  border: 1px solid rgb(188 135 255 / 23%);
+  background:
+    radial-gradient(ellipse at 0% 50%, rgb(142 82 195 / 13%), transparent 58%),
+    linear-gradient(145deg, #28242e, #131117 58%, #201b27);
+  box-shadow: 0 9px 24px rgb(0 0 0 / 34%), inset 0 1px rgb(255 255 255 / 8%);
+}
+
+.community-notice p {
+  color: #c9c1d1;
+}
+
+.community-notice p strong {
+  color: #f7f4fb;
+}
+
+.community-notice-icon,
+.ticker-icon {
+  background: linear-gradient(145deg, #54485f, #241f2b 68%, #40344b);
+  box-shadow: 0 3px 0 #0c0a0f, inset 0 1px rgb(255 255 255 / 17%);
+}
+
+.community-notice-dismiss {
+  border: 1px solid rgb(188 135 255 / 32%);
+  border-radius: 7px;
+  background: linear-gradient(145deg, #38303f, #1d1823);
+}
+
+.community-notice-dismiss:hover {
+  background: linear-gradient(145deg, #a382bd, #583873);
+  color: #fff;
+}
+
+.empty-selection,
+.selected-club,
+.wait-value,
+.event-value,
+.metric-card,
+.forum-post,
+.privacy-notice-content {
+  background: linear-gradient(145deg, #25222b, #121016 58%, #1d1922);
+  box-shadow: 0 5px 14px rgb(0 0 0 / 27%), inset 0 1px rgb(255 255 255 / 7%);
+}
+
+.empty-selection,
+.selected-club {
+  border: 1px solid #393341;
+  border-radius: 16px;
+}
+
+.empty-selection {
+  padding: 20px;
+}
+
+.selected-club {
+  padding: clamp(18px, 4vw, 26px);
+}
+
+.close-button {
+  border: 1px solid #494252;
+  background: linear-gradient(145deg, #423b49, #1a171f 65%, #342e3a);
+  box-shadow: 0 2px 0 #0c0a0f, inset 0 1px rgb(255 255 255 / 12%);
+}
+
+.club-summary {
+  gap: 14px;
+  margin-top: 21px;
+}
+
+.wait-value,
+.event-value,
+.metric-card {
+  border: 1px solid #393341;
+  border-radius: 12px;
+  padding: 15px;
+}
+
+.club-metrics {
+  gap: 12px;
+}
+
+.meter span {
+  background: #383341;
+}
+
+.meter span.active,
+.meter span.active:nth-child(n + 4),
+.meter span.active:nth-child(n + 7) {
+  background: linear-gradient(180deg, #d0b4e5, #8157a5 50%, #51346b);
+  box-shadow: 0 1px 4px rgb(188 135 255 / 34%);
+}
+
+.restaurant-menu {
+  border: 1px solid #7952a8;
+  background:
+    radial-gradient(ellipse at 15% 0, rgb(188 135 255 / 20%), transparent 55%),
+    linear-gradient(145deg, #393044, #211a2b 58%, #141119);
+  box-shadow: 0 4px 0 #0d0a11, 0 12px 26px rgb(0 0 0 / 37%), inset 0 1px rgb(255 255 255 / 17%);
+}
+
+.restaurant-menu-icon {
+  background: linear-gradient(145deg, #79618b, #352940 68%, #564264);
+  box-shadow: 0 3px 0 #17111d, inset 0 1px rgb(255 255 255 / 24%);
+}
+
+.choice-button,
+.forum-pagination button {
+  border: 1px solid #45404d;
+  border-radius: 8px;
+  background: linear-gradient(145deg, #302c35, #19161e 65%, #29242f);
+  box-shadow: 0 2px 0 #0c0a0f, inset 0 1px rgb(255 255 255 / 8%);
+}
+
+.choice-button:hover,
+.choice-button.selected,
+.forum-pagination button:hover,
+.forum-pagination button.active {
+  border-color: #9c70bd;
+  background: linear-gradient(145deg, #59436b, #30213d 65%, #493557);
+  box-shadow: 0 2px 0 #100c14, inset 0 1px rgb(255 255 255 / 17%);
+  color: #f7f0ff;
+}
+
+.forum-section .forum-consent-banner,
+.forum-section .forum-compose,
+.forum-section .forum-post {
+  border: 1px solid rgb(188 135 255 / 20%);
+  border-radius: 12px;
+  background: linear-gradient(145deg, rgb(43 38 50 / 94%), rgb(18 16 22 / 96%) 65%, rgb(31 26 38 / 94%));
+  box-shadow: 0 4px 12px rgb(0 0 0 / 28%), inset 0 1px rgb(255 255 255 / 6%);
+}
+
+.forum-section .forum-consent-banner {
+  border-left: 2px solid var(--purple);
+}
+
+.forum-section .forum-post + .forum-post {
+  margin-top: 9px;
+}
+
+.forum-section .forum-post:hover {
+  border-color: rgb(188 135 255 / 38%);
+  background: linear-gradient(145deg, #332b3d, #17131d 65%, #282131);
+}
+
+.app-shell .club-map-label {
+  border-color: rgb(255 255 255 / 24%);
+  background: linear-gradient(145deg, #514a58, #1a171f 60%, #39323f);
+  box-shadow: 0 3px 0 #09080b, 0 5px 12px rgb(0 0 0 / 47%), inset 0 1px rgb(255 255 255 / 16%);
+  color: #f7f4fb;
+}
+
+.app-shell .club-map-label.is-selected {
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--marker-color), transparent 68%),
+    0 3px 0 #09080b,
+    0 5px 12px rgb(0 0 0 / 47%),
+    inset 0 1px rgb(255 255 255 / 16%);
+}
+
+.app-shell .leaflet-control-attribution {
+  border: 1px solid rgb(255 255 255 / 17%);
+  background: rgb(17 15 21 / 91%) !important;
+}
+
+.app-shell .leaflet-control-attribution a {
+  color: #d2b3ff !important;
+}
+
+.app-shell .leaflet-bar a,
+.app-shell .leaflet-bar a:hover {
+  border-color: #494252;
+  background: linear-gradient(145deg, #393440, #17151b);
+  color: #f7f4fb;
+}
+
+footer {
+  border-top: 1px solid #393341;
+  background: linear-gradient(180deg, transparent, rgb(19 16 24 / 46%));
+}
+
+.privacy-notice-content {
+  border: 1px solid #393341;
+}
+
+.app-shell :is(.night-bar h1, #map-title, .ticker h2, .empty-selection strong) {
+  font-size: var(--heading-size) !important;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+.brand-mark {
+  display: grid;
+  width: 34.5px;
+  height: 34.5px;
+  flex: 0 0 auto;
+  transform: translateY(-2px);
+  place-items: center;
+  border: 1px solid #62566d;
+  border-radius: 10px;
+  background: linear-gradient(145deg, #39323f, #17141c 60%, #302838);
+  box-shadow: 0 2px 0 #09080b, 0 4px 10px rgb(0 0 0 / 32%), inset 0 1px rgb(255 255 255 / 16%);
+  color: var(--purple);
+  font-size: 27px;
+  line-height: 1;
+  text-shadow: none;
+}
+
+@media (max-width: 600px) {
+  .selected-club {
+    padding: 18px 14px;
+  }
+
+  .map-frame {
+    border-radius: 14px;
+    padding: 4px;
+  }
+
+  .berlin-map {
+    border-radius: 10px;
   }
 }
