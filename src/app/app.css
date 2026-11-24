@@ -654,8 +654,8 @@ main {
 
 .restaurant-menu ul {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px 18px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
   margin: 17px 0;
   padding: 0;
   list-style: none;
@@ -677,6 +677,8 @@ main {
   color: #d3b2ff;
   font-size: 12px;
   font-weight: 700;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
@@ -693,31 +695,6 @@ main {
   display: block;
   margin-bottom: 12px;
   color: #b7a9c7;
-}
-
-.food-map-anchor {
-  position: absolute;
-  top: -17px;
-  left: -17px;
-  display: grid;
-  width: 34px;
-  height: 34px;
-  place-items: center;
-  border: 1px solid rgb(245 187 85 / 75%);
-  border-radius: 50%;
-  background: #211a2a;
-  box-shadow: 0 3px 14px rgb(0 0 0 / 55%), 0 0 14px rgb(245 187 85 / 24%);
-  color: #f5bb55;
-}
-
-.food-map-anchor svg {
-  width: 18px;
-  height: 18px;
-  fill: none;
-  stroke: currentColor;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 1.7;
 }
 
 .food-map-pin {
@@ -1670,20 +1647,22 @@ footer {
   background: transparent;
 }
 
-.club-map-connector {
+.map-location-pin {
   position: absolute;
-  z-index: -1;
-  top: -200px;
-  left: -200px;
-  width: 400px;
-  height: 400px;
+  left: -7px;
+  bottom: 0;
+  width: 14px;
+  height: 18px;
   overflow: visible;
+  fill: var(--marker-color);
+  stroke: #16121c;
+  stroke-width: 1.5;
   pointer-events: none;
 }
 
-.club-map-connector line {
-  stroke-width: 1.5;
-  stroke-opacity: 0.65;
+.map-location-pin circle {
+  fill: #16121c;
+  stroke: none;
 }
 
 .club-map-anchor {
@@ -1711,7 +1690,7 @@ footer {
   border: 1px solid rgb(255 255 255 / 16%);
   border-radius: 999px;
   padding: 6px 9px 6px 7px;
-  background: rgb(20 17 26 / 96%);
+  background: #14111a;
   box-shadow: 0 3px 12px rgb(0 0 0 / 38%);
   color: #f7f4fb;
   font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -1801,10 +1780,6 @@ footer {
 
   .restaurant-menu {
     padding: 15px;
-  }
-
-  .restaurant-menu ul {
-    grid-template-columns: 1fr;
   }
 
   .admin-login {

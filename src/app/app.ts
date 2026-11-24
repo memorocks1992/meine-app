@@ -57,7 +57,8 @@ const RESTAURANT_MENU_HIGHLIGHTS: Readonly<Record<string, readonly RestaurantMen
     { name: 'Döner kebab (reported 2 June 2026)', price: '€7.50' },
   ],
   'nhas-city-chicken': [
-    { name: 'Half-chicken menu: Classic €15.90 · Spezial €17.90' },
+    { name: 'Half-chicken menu: Classic', price: '€15.90' },
+    { name: 'Half-chicken menu: Spezial', price: '€17.90' },
     { name: 'Crispy Wings (6 pieces)', price: '€7.90' },
     { name: 'Chicken bites (6 pieces)', price: '€8.90' },
     { name: 'Chicken wraps', price: 'from €6.90' },
@@ -450,7 +451,7 @@ export class App implements OnDestroy {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly supabase = inject(SupabaseService);
   private readonly markers = new Map<string, Leaflet.Marker>();
-  private readonly foodConnectors = new Map<string, Leaflet.Polyline>();
+  private readonly mapConnectors = new Map<string, Leaflet.Polyline>();
   private readonly labelOffsets = new Map<string, readonly [number, number]>([
     ['berghain', [90, -80]],
     ['sisyphos', [160, 20]],
@@ -1607,15 +1608,15 @@ export class App implements OnDestroy {
     const color = isGastronomy ? '#f5bb55' : hasEventToday ? '#4ade80' : '#f87171';
     const name = escapeHtml(club.name);
     const marker = isGastronomy
-      ? `<span class="food-map-anchor" style="--marker-color:${color}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3v6m4-6v6M6 6h4m-2 3v12M16 3v18m0-18c3 2 4 5 4 8h-4" /></svg></span>`
+      ? ''
       : `<span class="club-map-anchor" style="--marker-color:${color}"></span>`;
+    const locationPin = `<svg class="map-location-pin" style="--marker-color:${color}" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22S5 14.8 5 9a7 7 0 1 1 14 0c0 5.8-7 13-7 13Z"/><circle cx="12" cy="9" r="2.5"/></svg>`;
     const labelPin = isGastronomy
       ? `<svg class="food-map-pin" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3v6m4-6v6M6 6h4m-2 3v12M16 3v18m0-18c3 2 4 5 4 8h-4" /></svg>`
       : '<span class="club-map-pin"></span>';
-
     return leaflet.divIcon({
       className: 'club-map-icon',
-      html: `<svg class="club-map-connector" viewBox="0 0 400 400" aria-hidden="true"><line x1="200" y1="200" x2="${200 + offsetX}" y2="${200 + offsetY}" style="stroke:${color}" /></svg>${marker}<span class="club-map-label${selected ? ' is-selected' : ''}" style="--marker-color:${color};--label-x:${offsetX}px;--label-y:${offsetY}px">${labelPin}${name}</span>`,
+      html: `${locationPin}${marker}<span class="club-map-label${selected ? ' is-selected' : ''}" style="--marker-color:${color};--label-x:${offsetX}px;--label-y:${offsetY}px">${labelPin}${name}</span>`,
       iconSize: [1, 1],
       iconAnchor: [0, 0],
     });
@@ -1683,6 +1684,12 @@ export class App implements OnDestroy {
         this.markers.delete(id);
       }
     }
+    for (const [id, connector] of this.mapConnectors) {
+      if (!activeIds.has(id)) {
+        connector.removeFrom(this.map);
+        this.mapConnectors.delete(id);
+      }
+    }
 
     if (this.selectedClub() && !activeIds.has(this.selectedClub()!.id)) {
       this.selectedClub.set(null);
@@ -1725,7 +1732,7 @@ export class App implements OnDestroy {
       if (!marker || !element) return [];
       const point = map.latLngToContainerPoint(marker.getLatLng());
       const [preferredX, preferredY] = this.isGastronomy(club)
-        ? [(point.x < size.x / 2 ? -1 : 1) * (element.offsetWidth / 2 + 31), 0]
+        ? [(point.x < size.x / 2 ? -1 : 1) * (element.offsetWidth / 2 + 48), 0]
         : this.compactLayout
           ? this.compactLabelOffsets.get(club.id) ?? [0, 0]
           : this.labelOffsets.get(club.id) ?? [0, 0];
@@ -1741,20 +1748,37 @@ export class App implements OnDestroy {
       }];
     });
     const isFood = this.selectedMapCategory() === 'gastronomy';
-    const positions = layoutMapLabels(labels, size.x, size.y, isFood ? 14 : 4, !isFood, isFood ? 34 : 0);
+    const positions = layoutMapLabels(labels, size.x, size.y, isFood ? 14 : 4, !isFood, isFood ? 34 : 40);
     for (const label of labels) {
       const marker = this.markers.get(label.id);
       const element = marker?.getElement()?.querySelector<HTMLElement>('.club-map-label');
-      const line = marker?.getElement()?.querySelector<SVGLineElement>('.club-map-connector line');
-      if (!element || !line) continue;
+      if (!marker || !element) continue;
       const position = positions.get(label.id);
       element.style.visibility = position ? '' : 'hidden';
-      line.style.visibility = position ? '' : 'hidden';
+      const connector = this.mapConnectors.get(label.id);
+      if (!position && connector) {
+        connector.removeFrom(map);
+        this.mapConnectors.delete(label.id);
+      }
       if (position) {
         element.style.setProperty('--label-x', `${position[0]}px`);
         element.style.setProperty('--label-y', `${position[1]}px`);
-        line.setAttribute('x2', String(200 + position[0]));
-        line.setAttribute('y2', String(200 + position[1]));
+        if (this.leaflet) {
+          const end = map.containerPointToLatLng([label.x + position[0], label.y + position[1]]);
+          const points: Leaflet.LatLngExpression[] = [marker.getLatLng(), end];
+          const color = isFood ? '#ffd16e' : this.clubsWithEventsToday().has(label.id) ? '#4ade80' : '#f87171';
+          if (connector) {
+            connector.setLatLngs(points);
+            connector.setStyle({ color });
+          } else {
+            this.mapConnectors.set(label.id, this.leaflet.polyline(points, {
+              color,
+              weight: 1.5,
+              opacity: isFood ? 1 : 0.65,
+              interactive: false,
+            }).addTo(map));
+          }
+        }
       }
     }
   };

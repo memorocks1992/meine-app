@@ -96,6 +96,39 @@ describe('layoutMapLabels', () => {
     }
   });
 
+  it('moves a club label sideways when it would cover a location pin', () => {
+    const labels: MapLabel[] = [{
+      id: 'club', x: 180, y: 180, width: 100, height: 24,
+      preferredX: 0, preferredY: 0, selected: false,
+    }];
+    const position = layoutMapLabels(labels, 360, 390, 4, true, 40).get('club');
+    expect(position).toBeTruthy();
+    expect(Math.abs(position![0])).toBeGreaterThanOrEqual(74);
+    expect(position![1]).toBe(0);
+  });
+
+  it('avoids every club location pin when labels are close together', () => {
+    const labels: MapLabel[] = [
+      { id: 'a', x: 150, y: 150, width: 100, height: 24, preferredX: 20, preferredY: 0, selected: true },
+      { id: 'b', x: 205, y: 160, width: 90, height: 24, preferredX: -20, preferredY: 0, selected: false },
+      { id: 'c', x: 200, y: 215, width: 80, height: 24, preferredX: 0, preferredY: -30, selected: false },
+    ];
+    const positions = layoutMapLabels(labels, 400, 390, 4, true, 40);
+    for (const label of labels) {
+      const position = positions.get(label.id);
+      expect(position).toBeTruthy();
+      const [x, y] = position!;
+      const left = label.x + x - label.width / 2;
+      const right = label.x + x + label.width / 2;
+      const top = label.y + y - label.height / 2;
+      const bottom = label.y + y + label.height / 2;
+      for (const marker of labels) {
+        expect(right <= marker.x - 24 || left >= marker.x + 24
+          || bottom <= marker.y - 24 || top >= marker.y + 24).toBe(true);
+      }
+    }
+  });
+
   it('hides labels whose club is outside the visible map', () => {
     const positions = layoutMapLabels([{
       id: 'outside', x: -1, y: 20, width: 60, height: 24, preferredX: 10, preferredY: 0, selected: false,

@@ -185,7 +185,7 @@
     @if (communityNoticeOpen()) {
       <aside class="community-notice" role="note" aria-label="Community information">
         <span class="community-notice-icon" aria-hidden="true">i</span>
-        <p><strong>Powered by the community.</strong> No reports, no live information. Share what you see to help everyone plan their night.</p>
+        <p><strong>Powered by the community.</strong> No reports, no live information. Share what you see to help everyone plan their day.</p>
         <button type="button" class="community-notice-dismiss" (click)="acknowledgeCommunityNotice()">OK</button>
       </aside>
     }
@@ -628,7 +628,7 @@
   <footer>
     <div class="footer-brand">
       <span>QUEUE BERLIN</span>
-      <span>Community for Berlin's club scene</span>
+      <span>Community for Berlin's {{ selectedMapCategory() === 'gastronomy' ? 'food' : 'club' }} scene</span>
     </div>
     <details class="privacy-notice">
       <summary>Privacy &amp; Disclaimer</summary>

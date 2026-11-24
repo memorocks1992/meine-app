@@ -54,6 +54,16 @@ export function layoutMapLabels(
     const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
     const xs = [clamp(preferredX, minX, maxX), minX, maxX];
     const ys = [clamp(preferredY, minY, maxY), minY, maxY];
+    const preferredRect = {
+      left: xs[0] - label.width / 2,
+      right: xs[0] + label.width / 2,
+      top: ys[0] - label.height / 2,
+      bottom: ys[0] + label.height / 2,
+    };
+    const overlaps = (rect: Rectangle, other: Rectangle) =>
+      rect.left < other.right + gap && rect.right + gap > other.left
+      && rect.top < other.bottom + gap && rect.bottom + gap > other.top;
+    const preferSideways = markerSize > 0 && occupied.some((rect) => overlaps(preferredRect, rect));
     for (const rect of occupied) {
       xs.push(rect.left - gap - label.width / 2, rect.right + gap + label.width / 2);
       ys.push(rect.top - gap - label.height / 2, rect.bottom + gap + label.height / 2);
@@ -70,11 +80,8 @@ export function layoutMapLabels(
           top: y - label.height / 2,
           bottom: y + label.height / 2,
         };
-        if (occupied.some((other) =>
-          rect.left < other.right + gap && rect.right + gap > other.left
-          && rect.top < other.bottom + gap && rect.bottom + gap > other.top,
-        )) continue;
-        const distance = (x - preferredX) ** 2 + (y - preferredY) ** 2;
+        if (occupied.some((other) => overlaps(rect, other))) continue;
+        const distance = (x - preferredX) ** 2 + (preferSideways ? 16 : 1) * (y - preferredY) ** 2;
         if (!best || distance < best.distance) best = { x, y, distance };
       }
     }

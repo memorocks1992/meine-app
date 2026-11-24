@@ -112,6 +112,17 @@ describe('App', () => {
     expect(element.querySelector('.event-value')).toBeNull();
     expect(element.querySelector('.club-metrics')).toBeNull();
     expect(element.querySelector('.restaurant-menu')?.textContent).toContain('Crispy Wings');
+    const menuItems = Array.from(element.querySelectorAll('.restaurant-menu li'));
+    expect(menuItems.map((item) => [
+      item.querySelector('span')?.textContent?.trim(),
+      item.querySelector('.restaurant-menu-price')?.textContent?.trim(),
+    ])).toEqual([
+      ['Half-chicken menu: Classic', '€15.90'],
+      ['Half-chicken menu: Spezial', '€17.90'],
+      ['Crispy Wings (6 pieces)', '€7.90'],
+      ['Chicken bites (6 pieces)', '€8.90'],
+      ['Chicken wraps', 'from €6.90'],
+    ]);
     expect(element.querySelector('input[aria-label="Wait time in minutes"]')).not.toBeNull();
     expect(element.querySelector('input[aria-label="Door Odds from 1 to 10"]')).toBeNull();
     expect(element.querySelector('#entry-price')).toBeNull();
@@ -410,6 +421,20 @@ describe('App', () => {
     expect(compiled.querySelector('.ticker')?.classList.contains('offline')).toBe(true);
     expect(compiled.querySelector('.ticker p')?.textContent).toContain('Offline. No current updates');
     expect(compiled.querySelector('.live-indicator-dot')).not.toBeNull();
+  });
+
+  it('updates the footer community text for the selected category', () => {
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    const footerText = () => (fixture.nativeElement as HTMLElement).querySelector('.footer-brand span:last-child')?.textContent?.trim();
+    expect(footerText()).toBe("Community for Berlin's club scene");
+    fixture.componentInstance['setMapCategory']('gastronomy');
+    fixture.detectChanges();
+    expect(footerText()).toBe("Community for Berlin's food scene");
+    fixture.componentInstance['setMapCategory']('club');
+    fixture.detectChanges();
+    expect(footerText()).toBe("Community for Berlin's club scene");
+    fixture.destroy();
   });
 
   it('should show the live update for the selected map category only', async () => {
