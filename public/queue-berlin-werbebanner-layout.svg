@@ -35,14 +35,7 @@
     <text x="104" y="276" font-family="Arial, sans-serif" font-size="11" font-weight="700" letter-spacing="2" fill="#aaa4b4">ALL DETAILS APPLY TO TONIGHT</text>
     <text x="104" y="302" font-family="Arial, sans-serif" font-size="20" font-weight="700" fill="#f7f4fb">Thursday, 12 November 2026</text>
 
-    <rect x="104" y="322" width="946" height="112" rx="12" fill="url(#ad)" stroke="#51465e" stroke-width="1.5"/>
-    <rect x="120" y="339" width="48" height="76" rx="7" fill="#342b3d"/>
-    <path d="M144 351v49m-14-25h28" stroke="#bc87ff" stroke-width="3"/>
-    <text x="185" y="350" font-family="Arial, sans-serif" font-size="10" font-weight="700" letter-spacing="2" fill="#aaa4b4">WERBUNG</text>
-    <text x="185" y="378" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#f7f4fb">Gut durch die Berliner Nacht.</text>
-    <text x="185" y="402" font-family="Arial, sans-serif" font-size="13" fill="#aaa4b4">Nachtmobilität · Beispiel-Sponsorfläche</text>
-    <rect x="890" y="357" width="135" height="43" rx="8" fill="#bc87ff"/>
-    <text x="957" y="384" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="700" fill="#170f22">Mehr erfahren ↗</text>
+    <image href="queue-berliner-pilsner-banner-728x90.svg" x="104" y="322" width="946" height="112" preserveAspectRatio="none"/>
 
     <text x="104" y="478" font-family="Arial, sans-serif" font-size="11" font-weight="700" letter-spacing="2" fill="#aaa4b4">BERLIN · TONIGHT</text>
     <text x="104" y="511" font-family="Arial, sans-serif" font-size="26" font-weight="700" fill="#f7f4fb">Where's the party?</text>
@@ -86,13 +79,7 @@
     <circle cx="1207" cy="598" r="12" fill="#292137"/><text x="1207" y="603" text-anchor="middle" font-family="Georgia, serif" font-size="15" font-weight="700" fill="#bc87ff">i</text>
     <text x="1228" y="596" font-family="Arial, sans-serif" font-size="11" font-weight="700" fill="#f7f4fb">Live updates</text>
     <text x="1228" y="612" font-family="Arial, sans-serif" font-size="9" fill="#aaa4b4">No current updates.</text>
-    <rect x="1185" y="641" width="300" height="117" rx="12" fill="url(#ad)" stroke="#51465e" stroke-width="1.5"/>
-    <text x="1200" y="661" font-family="Arial, sans-serif" font-size="8" font-weight="700" letter-spacing="1.5" fill="#aaa4b4">WERBUNG</text>
-    <text x="1200" y="688" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#f7f4fb">Gut durch die</text>
-    <text x="1200" y="706" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#f7f4fb">Berliner Nacht.</text>
-    <text x="1200" y="730" font-family="Arial, sans-serif" font-size="9" fill="#aaa4b4">Nachtmobilität · Beispiel</text>
-    <rect x="1379" y="713" width="91" height="30" rx="7" fill="#bc87ff"/>
-    <text x="1424" y="733" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#170f22">Öffnen ↗</text>
+    <image href="queue-berliner-pilsner-banner-320x100.svg" x="1185" y="641" width="300" height="94" preserveAspectRatio="none"/>
     <rect x="1185" y="772" width="300" height="163" rx="12" fill="#15121c" stroke="#302b39"/>
     <text x="1200" y="802" font-family="Arial, sans-serif" font-size="10" font-weight="700" letter-spacing="1.5" fill="#aaa4b4">FRIEDRICHSHAIN</text>
     <text x="1200" y="831" font-family="Arial, sans-serif" font-size="20" font-weight="700" fill="#f7f4fb">Berghain</text>
@@ -104,5 +91,5 @@
   <path d="M72 1210h1456" stroke="#302b39"/>
   <text x="800" y="1270" text-anchor="middle" font-family="Arial, sans-serif" font-size="17" font-weight="700" letter-spacing="2" fill="#bc87ff">VORSCHLAG: EINE KLAR GEKENNZEICHNETE FLÄCHE PRO ANSICHT</text>
   <text x="800" y="1310" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" fill="#aaa4b4">Keine Pop-ups, keine überdeckten Inhalte, keine automatisch startenden Videos.</text>
-  <text x="800" y="1346" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#817a8c">Beispielanzeige / Platzhalter — nicht live geschaltet</text>
+  <text x="800" y="1346" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#817a8c">Berliner Pilsner: unverbindlicher Konzeptentwurf — nicht live geschaltet</text>
 </svg>
