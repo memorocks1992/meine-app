@@ -175,7 +175,7 @@
     <section class="night-bar" aria-label="Party night date">
       <div>
         <p class="eyebrow">ALL DETAILS APPLY TODAY</p>
-        <h1>{{ partyNight().date }}</h1>
+        <h1><svg class="calendar-symbol" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="3" width="12" height="11" rx="1.5" /><path d="M5 1.5v3M11 1.5v3M2 6.5h12" /></svg>{{ partyNight().date }}</h1>
       </div>
     </section>
   }
@@ -208,7 +208,7 @@
       <div class="map-frame">
         <div #mapElement class="berlin-map" role="application" [attr.aria-label]="selectedMapCategory() === 'gastronomy' ? 'Interactive map of Berlin restaurants' : 'Interactive map of Berlin clubs'"></div>
         <div class="map-caption">
-          {{ selectedMapCategory() === 'gastronomy' ? 'Restaurant locations' : 'Club locations' }}* · OpenStreetMap
+          {{ selectedMapCategory() === 'gastronomy' ? 'Restaurant locations' : 'Club locations' }} · OpenStreetMap
         </div>
       </div>
     </section>
@@ -238,8 +238,15 @@
           <div class="club-summary" [class.gastronomy-summary]="isGastronomy(club)">
             <div class="wait-value">
               <span class="eyebrow"><svg class="summary-label-icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.25" /><path d="M8 4.5V8l2.25 1.5" /></svg>WAIT TIME</span>
-              <strong>{{ clubMetrics()?.waitMinutes ?? '–' }} <small>min</small></strong>
-              <span class="metric-note">{{ clubMetrics() && clubMetrics()?.waitMinutes === null ? 'No recent wait-time reports' : metricCaption() }}</span>
+              <strong>
+                @if (clubMetrics()?.waitMinutes === null || clubMetrics()?.waitMinutes === undefined) {
+                  <span class="wait-value-placeholder">–</span>
+                } @else {
+                  {{ clubMetrics()?.waitMinutes }}
+                }
+                <small>min</small>
+              </strong>
+              <span class="metric-note" [class.wait-report-note]="clubMetrics()?.waitMinutes === null">{{ clubMetrics()?.waitMinutes === null ? 'No wait reports' : metricCaption() }}</span>
               @if (clubMetrics()?.latestWaitReportAt; as latestWaitReportAt) {
                 <span class="metric-note"><strong>Last report: {{ clubMetrics()?.latestWaitMinutes }} min · {{ formatReportTime(latestWaitReportAt) }} ({{ formatTimeAgo(latestWaitReportAt) }})</strong></span>
               }
@@ -524,8 +531,8 @@
             @if (!forumDisclaimerAccepted()) {
               <div class="forum-consent-banner" role="note">
                 <span class="forum-notice-icon" aria-hidden="true">i</span>
+                <h3 class="forum-notice-title">Before you post</h3>
                 <div class="forum-notice-content">
-                  <h3>Before you post</h3>
                   <p>Posts and replies are public, community-submitted, and not pre-reviewed or endorsed by Queue Berlin. Please don’t share private or sensitive information. Use “Report” to flag unlawful or harmful content. <span class="forum-expiry-inline">Posts and replies are automatically deleted after 24 hours.</span></p>
                 </div>
                 <button type="button" class="secondary-action" aria-label="OK, got it" (click)="acknowledgeForumDisclaimer()">OK</button>
@@ -634,6 +641,13 @@
       <span>QUEUE BERLIN</span>
       <span>Community for Berlin's {{ selectedMapCategory() === 'gastronomy' ? 'food' : 'club' }} scene</span>
     </div>
+    <a class="instagram-link" href="https://www.instagram.com/queueberlin/" target="_blank" rel="noopener noreferrer" aria-label="Queue Berlin on Instagram">
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" stroke-width="1.8" />
+        <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.8" />
+        <circle cx="18" cy="6" r="1" fill="currentColor" />
+      </svg>
+    </a>
     <details class="privacy-notice">
       <summary>Privacy &amp; Disclaimer</summary>
       <div class="privacy-notice-content">
@@ -670,6 +684,7 @@
         <p>Email: <a href="mailto:info.queue@web.de">info.queue@web.de</a></p>
         <p>Queue Berlin is operated by an individual.</p>
         <p>Queue Berlin currently does not intend to generate revenue and is operated purely as a hobby platform.</p>
+        <p>Addresses may be inaccurate or outdated. Please verify with the venue. Queue Berlin accepts no liability for address information.</p>
       </div>
     </details>
     <details class="privacy-notice about-us">
@@ -680,13 +695,5 @@
         <p>Contact us at <a href="mailto:info.queue@web.de">info.queue@web.de</a>.</p>
       </div>
     </details>
-    <a class="instagram-link" href="https://www.instagram.com/queueberlin/" target="_blank" rel="noopener noreferrer" aria-label="Queue Berlin on Instagram">
-      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" stroke-width="1.8" />
-        <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.8" />
-        <circle cx="18" cy="6" r="1" fill="currentColor" />
-      </svg>
-    </a>
-    <p class="location-disclaimer">* Addresses may be inaccurate or outdated. Please verify with the venue. Queue Berlin accepts no liability for address information.</p>
   </footer>
 </div>
