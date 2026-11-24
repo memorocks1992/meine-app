@@ -2,7 +2,7 @@
 
 A responsive web prototype for Berlin's nightlife. The map starts with clubs and also includes a gastronomy category. Visitors can read and submit reports without creating an account; only admins sign in. Supabase report submission, public data, and admin authentication become active after the project is configured below. Verify addresses and map locations before launch.
 
-The map has separate **Clubs** and **Food** categories. The gastronomy seed migration adds four restaurant locations and public menu links; its menu cards show selected items, not a complete or price-verified menu. Restaurant wait-time reports are event-independent and are automatically deleted after the Berlin calendar day on which they were submitted. Apply `20261124110000_gastronomy_venues.sql` before deploying this category.
+The map has separate **Clubs** and **Food** categories. The gastronomy seed migration and the subsequent [Prenzlauer Berg food venues migration](./supabase/migrations/20261124130000_prenzlauer_berg_food_venues.sql) add six locations and public menu links; menu cards show selected items, not a complete or price-verified menu. Restaurant wait-time reports are event-independent and are automatically deleted after the Berlin calendar day on which they were submitted. Apply `20261124110000_gastronomy_venues.sql` and the subsequent migration before deploying this category.
 
 ## Supabase setup
 

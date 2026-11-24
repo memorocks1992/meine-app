@@ -134,6 +134,28 @@ describe('App', () => {
     fixture.destroy();
   });
 
+  it('shows the new Prenzlauer Berg food venues and their menu highlights', () => {
+    const fixture = TestBed.createComponent(App);
+    const app = fixture.componentInstance;
+    app['setMapCategory']('gastronomy');
+    const expected = [
+      { id: 'rueyam-schoenhauser-allee', address: 'Schönhauser Allee 44a', highlight: 'Chicken vegetable kebab' },
+      { id: 'zeit-fuer-brot-eberswalder', address: 'Eberswalder Straße 26', highlight: 'Cinnamon swirl bun' },
+    ];
+    for (const { id, address, highlight } of expected) {
+      const venue = app['visibleClubs']().find((club) => club.id === id);
+      expect(venue).toBeDefined();
+      expect(venue!.address).toContain(address);
+      app['selectedClub'].set(venue!);
+      fixture.detectChanges();
+      const element = fixture.nativeElement as HTMLElement;
+      expect(element.querySelector('.restaurant-menu')?.textContent).toContain(highlight);
+      expect(element.querySelector<HTMLAnchorElement>('.restaurant-menu a')?.href).toBe(venue!.menu_url);
+      expect(element.querySelector('.club-metrics')).toBeNull();
+    }
+    fixture.destroy();
+  });
+
   it('loads and submits restaurant wait reports without requiring a club event', async () => {
     const fixture = TestBed.createComponent(App);
     const app = fixture.componentInstance;

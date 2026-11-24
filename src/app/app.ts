@@ -63,6 +63,16 @@ const RESTAURANT_MENU_HIGHLIGHTS: Readonly<Record<string, readonly RestaurantMen
     { name: 'Chicken bites (6 pieces)', price: '€8.90' },
     { name: 'Chicken wraps', price: 'from €6.90' },
   ],
+  'rueyam-schoenhauser-allee': [
+    { name: 'Chicken vegetable kebab' },
+    { name: 'Vegetarian sandwich' },
+    { name: 'Vegetable dürüm' },
+  ],
+  'zeit-fuer-brot-eberswalder': [
+    { name: 'Cinnamon swirl bun' },
+    { name: 'Chocolate swirl bun' },
+    { name: 'Bread and rolls' },
+  ],
 };
 
 function priceCategory(value: string | null): number {
@@ -446,6 +456,8 @@ export class App implements OnDestroy {
     { id: 'mustafa-gemuese-kebap', name: 'Mustafa’s Gemüse Kebap', district: 'Kreuzberg', address: 'Mehringdamm 33, 10961 Berlin', latitude: 52.493485, longitude: 13.3885619, color: '#f5bb55', category: 'gastronomy', menu_url: 'https://speisekarte.menu/restaurants/berlin/mustafas-gemuese-kebap-4/menu' },
     { id: 'oggis-gemuesekebab', name: 'Oggi’s Gemüsekebab', district: 'Mitte', address: 'Döberitzer Straße 1, 10557 Berlin', latitude: 52.5294618, longitude: 13.3688309, color: '#f5bb55', category: 'gastronomy', menu_url: 'https://intravel.net/de/berlin/restaurants-cafes/oggis-gemusekebab' },
     { id: 'nhas-city-chicken', name: 'Nhas City Chicken', district: 'Mitte', address: 'Torstraße 125, 10119 Berlin', latitude: 52.5298592, longitude: 13.4004233, color: '#f5bb55', category: 'gastronomy', menu_url: 'https://citychickennhas.de/menu' },
+    { id: 'rueyam-schoenhauser-allee', name: 'Rüyam Gemüse Kebab', district: 'Prenzlauer Berg', address: 'Schönhauser Allee 44a, 10435 Berlin', latitude: 52.5405338, longitude: 13.4125814, color: '#f5bb55', category: 'gastronomy', menu_url: 'https://rueyam.de/#food' },
+    { id: 'zeit-fuer-brot-eberswalder', name: 'Zeit für Brot', district: 'Prenzlauer Berg', address: 'Eberswalder Straße 26, 10437 Berlin', latitude: 52.5413255, longitude: 13.4115081, color: '#f5bb55', category: 'gastronomy', menu_url: 'https://zeitfuerbrot.com/en/menu' },
   ]);
 
   private readonly platformId = inject(PLATFORM_ID);
